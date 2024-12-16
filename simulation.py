@@ -1,44 +1,36 @@
-import pandas as pd
-from utils import Schedule, TemperatureSensor, FanStatus, OptimalStartStop
+from utils import read_csv, process_all_data
+
+# File path to the CSV data
+csv_path = "./Cold_Snap_Data.csv"
+
+building_start_hour = 8
+earliest_start_hour = 6
 
 
-def simulate_optimal_start_stop(csv_file):
-    # Load the CSV file
-    data = pd.read_csv(csv_file, skiprows=1)
-    data.columns = ["timestamp", "SpaceTemp", "OutsideAirTemp", "FanStatus"]
-    data = data[~data["timestamp"].str.contains("timestamp", na=False)]
-    data["timestamp"] = pd.to_datetime(data["timestamp"], errors="coerce")
-    data = data.dropna(subset=["timestamp"])
-    data = data.reset_index(drop=True)
 
-    # Instantiate classes
-    schedule = Schedule()
-    outside_temp_sensor = TemperatureSensor()
-    space_temp_sensor = TemperatureSensor()
-    fan_status = FanStatus()
-    oss = OptimalStartStop(
-        comfort_limits=(68, 74, 71),  # Example comfort limits
-        schedule=schedule,
-        outside_temp_sensor=outside_temp_sensor,
-        space_temp_sensor=space_temp_sensor,
-        fan_status=fan_status,
-    )
+# Read and process the CSV data
+data = read_csv(csv_path)
+data = process_all_data(data)
 
-    # Simulate equipment startup
-    for _, row in data.iterrows():
-        # Update sensor data
-        outside_temp_sensor.update_temperature(row["OutsideAirTemp"])
-        space_temp_sensor.update_temperature(row["SpaceTemp"])
-        fan_status.update_status(row["FanStatus"] == 1)
+cache = {}
+start_recording_cache = False
 
-        # Simulate equipment start in the "active" block
-        if schedule.current_action() == "active":
-            # Trigger the optimal start logic
-            oss.execute_optimal_start_stop()
+for row in data:
+    # Get values directly from the dictionary
+    outdoor_temp = row.get("OutsideAirTemp")
+    space_temp = row.get("SpaceTemp")
+    fan_status = row.get("FanStatus")
+    timestamp = row.get("timestamp")
+    hour = timestamp.hour
+    minute = timestamp.minute
 
-    # Print cached warm-up data
-    print("Fan Start Cache:", fan_status.get_start_cache())
+    # Handle cache recording logic based on FanStatus and time
+    if fan_status == 1 and not start_recording_cache and earliest_start_hour <= hour < building_start_hour:
+        start_recording_cache = True
+        print(f"Starting cache: {hour:02}:{minute:02} (FanStatus = {fan_status}) (SpaceTemp = {space_temp}) (outdoor_temp = {outdoor_temp})")
+
+    elif hour == building_start_hour and minute == 0:
+        start_recording_cache = False
+        print(f"Stopping cache: {hour:02}:{minute:02} (FanStatus = {fan_status}) (SpaceTemp = {space_temp}) (outdoor_temp = {outdoor_temp})")
 
 
-# Run the simulation with the CSV file
-simulate_optimal_start_stop("Cold_Snap_Data.csv")
