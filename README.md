@@ -1,70 +1,124 @@
-# OptimalStartStopHvac
-Pseudocode for implementing linear interpolation for HVAC optimal start: The goal is to input the current outdoor air temperature, zone air temperature, and start times recorded from previous optimal start processes to provide a simple yet effective method for calculating the minutes needed to warm up or cool down zones. This approach optimizes the HVAC system by adaptively learning building characteristics and adjusting based on factors such as the relationship between outdoor and indoor air temperatures.
+# Dynamic Weighted Interpolation for Optimal Start (DWIOS)
 
-## interpolate_start_minutes function
+Dynamic Weighted Interpolation for Optimal Start (DWIOS) is a robust strategy for determining the preconditioning time needed to warm or cool HVAC zones before occupancy. The algorithm adapts to varying outdoor and indoor conditions using historical data and dynamically adjusts the start time based on current temperature readings. The method ensures optimal HVAC system operation, improving efficiency and maintaining comfort.
 
-This function calculates the optimal HVAC start time by analyzing current outside air and zone temperatures against historical data and using **weighted interpolation**. The historical data contains past outside temperatures, zone temperatures, and the corresponding start times (in minutes) needed to warm or cool the space before occupancy. The function begins by calculating the "distance" between the current conditions and each historical record. Distance is measured as the sum of the absolute differences between the current outside temperature and zone temperature and the historical values. These distances represent how close past conditions are to the current situation. The function then sorts the distances in ascending order and selects the two closest points. If there’s only one close point, the corresponding start time is returned directly. Otherwise, a weighted average of the two closest start times is calculated, with weights based on the inverse of the distances. This gives more importance to the historical points that are closer to the current conditions. Finally, the interpolated start time is rounded and returned as the optimal value, ensuring an accurate and smooth estimate for pre-occupancy warm-up or cool-down. This approach works efficiently for varying weather conditions and ensures reliable HVAC system operation.
+This code base is inspired by the work of the Pacific Northwest National Laboratory (PNNL) and specifically their VOLTTRON team, which creates open-source software and leads research efforts in making buildings not only energy-efficient but also advancing the future of Grid-Interactive Efficient Buildings (GEB).
 
-### **Pseudocode: Linear Interpolation for HVAC Optimal Start**
+For more information on VOLTTRON, visit their [documentation](https://volttron.readthedocs.io/en/main/).
 
+
+
+## Overview
+The DWIOS algorithm calculates the optimal pre-start time by comparing current outdoor and zone temperatures to historical conditions. Using **weighted interpolation**, it predicts how long it will take to reach desired temperatures. The algorithm dynamically adjusts for varying weather conditions and can be implemented on any IoT platform that supports historical data retrieval.
+
+## Key Features
+- **Dynamic Adaptation**: Adjusts based on outdoor and zone air temperatures.
+- **Weighted Interpolation**: Prioritizes closer historical conditions for accurate predictions.
+- **Cross-Platform Compatibility**: Can be implemented in any programming language with database access.
+- **Python Demo**: Includes a Python implementation for proof-of-concept and simulation.
+
+
+
+## How It Works
+### 1. Historical Data Retrieval
+DWIOS requires historical data containing:
+- **Outdoor Air Temperature**
+- **Zone Air Temperature**
+- **Start Times (in minutes)**
+
+### 2. Calculation Workflow
+1. **Data Query**: Historical data is retrieved from an SQL database.
+2. **Distance Calculation**: The algorithm calculates the "distance" between current conditions and historical records based on temperature differences.
+3. **Weighted Interpolation**: Two closest historical points are used to interpolate the required pre-start time.
+4. **Bounds Enforcement**: Ensures calculated times respect configured limits (e.g., earliest and latest start times).
+
+
+
+## Function: `interpolate_start_minutes`
+This function is the core of the DWIOS algorithm, performing weighted interpolation to calculate start times.
+
+### **Logic:**
+- **Inputs**: Current outdoor and zone temperatures, historical data.
+- **Outputs**: Interpolated pre-start time in minutes.
+- **Steps**:
+  1. Calculate distances between current conditions and historical data.
+  2. Sort distances and select the two closest points.
+  3. Perform weighted interpolation using the inverse of distances.
+  4. Return the rounded interpolated start time.
+
+
+
+## Python Implementation
+The Python implementation simulates DWIOS with sample data. Running the script outputs an **optimal start time** as a Python `datetime` object.
+
+### Example:
+```bash
+$ python dynamic_weighted_interpolation_opt_start.py
+Optimal Start Time: 2024-12-18 04:54:19.641972
 ```
-FUNCTION interpolate_start_minutes(historical_data, current_outside_temp, current_zone_temp, default_minutes=60):
 
-    IF historical_data is EMPTY:
-        RETURN default_minutes   // Fallback if no historical data is available
+The script ensures:
+- Integration with SQL for historical data retrieval.
+- Flexible, modular design for deployment on IoT platforms.
 
-    INITIALIZE distances as an empty list
 
-    FOR EACH record in historical_data:
-        (outside_temp, zone_temp, start_minutes) = record
-        distance = ABS(current_outside_temp - outside_temp) + ABS(current_zone_temp - zone_temp)
-        APPEND (distance, start_minutes) to distances
 
-    SORT distances in ascending order by distance value
+## SQL for Historical Data Retrieval
+DWIOS retrieves historical data from an SQL database. Here's a generic SQL query:
 
-    SELECT closest = first two records from sorted distances
+### Example SQL Query:
+```sql
+SELECT outdoor_temp, zone_temp, start_minutes
+FROM hvac_historical_data
+WHERE date >= CURDATE() - INTERVAL 15 DAY;
+```
+### Notes:
+1. The query fetches 15 days of historical data.
+2. The IoT platform can cache this data for the algorithm to use.
 
-    // Handle edge case where only one data point exists
-    IF length of closest == 1:
+
+
+## Generic Pseudocode for IoT Platforms
+DWIOS can be implemented on any IoT platform. Here's a generic approach:
+
+### Pseudocode:
+```pseudo
+FUNCTION get_optimal_start_time(current_outdoor_temp, current_zone_temp):
+    historical_data = query_sql_database()
+    IF historical_data IS EMPTY:
+        RETURN default_start_time
+
+    distances = []
+    FOR each record IN historical_data:
+        distance = ABS(current_outdoor_temp - record.outdoor_temp) + 
+                   ABS(current_zone_temp - record.zone_temp)
+        APPEND (distance, record.start_minutes) TO distances
+
+    SORT distances BY distance ASCENDING
+    closest = GET first TWO distances
+
+    IF closest HAS ONE record:
         RETURN closest[0].start_minutes
 
-    // Extract two closest points
-    (distance1, minutes1) = closest[0]
-    (distance2, minutes2) = closest[1]
-
-    // Compute weights as inverse of distances
-    weight1 = 1 / distance1 IF distance1 != 0 ELSE 1
-    weight2 = 1 / distance2 IF distance2 != 0 ELSE 1
-
-    // Perform weighted interpolation
-    interpolated_minutes = ((minutes1 * weight1) + (minutes2 * weight2)) / (weight1 + weight2)
+    weight1 = 1 / closest[0].distance
+    weight2 = 1 / closest[1].distance
+    interpolated_minutes = (closest[0].start_minutes * weight1 + 
+                            closest[1].start_minutes * weight2) / (weight1 + weight2)
 
     RETURN ROUND(interpolated_minutes)
 ```
 
 
-### **Key Notes:**
-1. **Inputs**:  
-   - `historical_data`: List of tuples containing past `(outside_temp, zone_temp, start_minutes)`.  
-   - `current_outside_temp` and `current_zone_temp`: Current sensor readings.  
-   - `default_minutes`: A fallback value if historical data is unavailable.  
 
-2. **Logic**:  
-   - Compute the **distance** between current and historical conditions.  
-   - Sort distances and pick the two closest points.  
-   - Use **inverse distance weighting** to interpolate the start time, ensuring closer points have more influence.  
-
-3. **Outputs**:  
-   - Returns an interpolated HVAC start time rounded to the nearest integer.  
+## IoT Platform Integration
+DWIOS can integrate with IoT platforms by:
+1. **Database Setup**: Store historical data in a time-series database.
+2. **Data Access**: Query historical data at runtime.
+3. **Cross-Language Implementation**: Translate the provided pseudocode into the platform's native programming language.
 
 
-### **High-Level Flow**:
-1. If no data, return default start time.  
-2. Calculate distances to find closest historical conditions.  
-3. Sort and select the two closest points.  
-4. Use weighted interpolation to estimate start time.  
-5. Return the result.  
 
-## Python
-
-Run `optimized_start.py` for a very Pythonic simulation.
+## Advantages
+- **Scalable**: Supports large datasets and dynamic conditions.
+- **Accurate**: Uses precise weighted interpolation for predictions.
+- **Flexible**: Deployable on various platforms and architectures.
