@@ -10,13 +10,13 @@ let alpha3d = 0; // Dynamic adjustment for start time
 
 // Historical data (fake data for 7 days)
 const historicalData = [
-  { zoneTemp: 50, outdoorTemp: 10, startTime: 120 },
-  { zoneTemp: 48, outdoorTemp: 12, startTime: 115 },
-  { zoneTemp: 52, outdoorTemp: 8, startTime: 125 },
-  { zoneTemp: 50, outdoorTemp: 11, startTime: 118 },
-  { zoneTemp: 51, outdoorTemp: 9, startTime: 122 },
-  { zoneTemp: 49, outdoorTemp: 13, startTime: 110 },
-  { zoneTemp: 47, outdoorTemp: 14, startTime: 108 },
+  { zoneTemp: 50, outdoorTemp: 10, warmupTimeMinutes: 120 },
+  { zoneTemp: 48, outdoorTemp: 12, warmupTimeMinutes: 115 },
+  { zoneTemp: 52, outdoorTemp: 8, warmupTimeMinutes: 125 },
+  { zoneTemp: 50, outdoorTemp: 11, warmupTimeMinutes: 118 },
+  { zoneTemp: 51, outdoorTemp: 9, warmupTimeMinutes: 122 },
+  { zoneTemp: 49, outdoorTemp: 13, warmupTimeMinutes: 110 },
+  { zoneTemp: 47, outdoorTemp: 14, warmupTimeMinutes: 108 },
 ];
 
 // Current Conditions
@@ -53,7 +53,7 @@ function updateParameters(historicalData, forgettingFactor) {
     const Tsp = currentConditions.occupiedSetPoint;
     const Tz = data.zoneTemp;
     const To = data.outdoorTemp;
-    const tActual = data.startTime;
+    const tActual = data.warmupTimeMinutes;
 
     // Calculate new alpha values based on historical data
     const alpha3aNew = Math.abs(tActual / (Tsp - Tz));

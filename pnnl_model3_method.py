@@ -15,13 +15,13 @@ alpha_3d = 0  # Dynamic adjustment for start time
 
 # Historical data (fake data for 7 days)
 historical_data = [
-    {"zone_temp": 50, "outdoor_temp": 10, "start_time": 120},
-    {"zone_temp": 48, "outdoor_temp": 12, "start_time": 115},
-    {"zone_temp": 52, "outdoor_temp": 8, "start_time": 125},
-    {"zone_temp": 50, "outdoor_temp": 11, "start_time": 118},
-    {"zone_temp": 51, "outdoor_temp": 9, "start_time": 122},
-    {"zone_temp": 49, "outdoor_temp": 13, "start_time": 110},
-    {"zone_temp": 47, "outdoor_temp": 14, "start_time": 108},
+    {"zone_temp": 50, "outdoor_temp": 10, "warmup_time_minutes": 120},
+    {"zone_temp": 48, "outdoor_temp": 12, "warmup_time_minutes": 115},
+    {"zone_temp": 52, "outdoor_temp": 8, "warmup_time_minutes": 125},
+    {"zone_temp": 50, "outdoor_temp": 11, "warmup_time_minutes": 118},
+    {"zone_temp": 51, "outdoor_temp": 9, "warmup_time_minutes": 122},
+    {"zone_temp": 49, "outdoor_temp": 13, "warmup_time_minutes": 110},
+    {"zone_temp": 47, "outdoor_temp": 14, "warmup_time_minutes": 108},
 ]
 
 # Current Conditions
@@ -32,55 +32,45 @@ current_conditions = {
 }
 
 def smooth_parameters(alpha, alpha_new, forgetting_factor):
-    """
-    Exponential smoothing for parameter updates.
-    """
+    """Exponential smoothing for parameter updates."""
     return alpha + forgetting_factor * (alpha_new - alpha)
 
 def calculate_optimal_start(current_conditions, alpha_3a, alpha_3b, alpha_3d):
-    """
-    Calculate optimal start time based on Model 3.
-    """
+    """Calculate optimal start time based on Model 3."""
     T_sp = current_conditions["occupied_set_point"]
     T_z = current_conditions["zone_temp"]
     T_o = current_conditions["outdoor_temp"]
 
-    # Apply the formula from Model 3
     t_opt = (
         alpha_3a * (T_sp - T_z)
         + alpha_3b * (T_sp - T_z) * (T_sp - T_o) / alpha_3b
         + alpha_3d
     )
 
-    # Ensure t_opt is within configured bounds
     t_opt = max(late_start_limit, min(t_opt, early_start_limit))
     return t_opt
 
 def update_parameters(historical_data, forgetting_factor):
-    """
-    Update parameters alpha_3a, alpha_3b, and alpha_3d using historical data.
-    """
+    """Update parameters alpha_3a, alpha_3b, and alpha_3d using historical data."""
     global alpha_3a, alpha_3b, alpha_3d
 
     for data in historical_data:
         T_sp = current_conditions["occupied_set_point"]
         T_z = data["zone_temp"]
         T_o = data["outdoor_temp"]
-        t_actual = data["start_time"]
+        t_actual = data["warmup_time_minutes"]
 
-        # Calculate new alpha values based on historical data
         alpha_3a_new = abs(t_actual / (T_sp - T_z))
         alpha_3b_new = abs(t_actual / ((T_sp - T_z) * (T_sp - T_o)))
         alpha_3d_new = t_actual - (
-            alpha_3a_new * (T_sp - T_z) + alpha_3b_new * (T_sp - T_z) * (T_sp - T_o) / alpha_3b_new
+            alpha_3a_new * (T_sp - T_z)
+            + alpha_3b_new * (T_sp - T_z) * (T_sp - T_o) / alpha_3b_new
         )
 
-        # Apply exponential smoothing
         alpha_3a = smooth_parameters(alpha_3a, alpha_3a_new, forgetting_factor)
         alpha_3b = smooth_parameters(alpha_3b, alpha_3b_new, forgetting_factor)
         alpha_3d = smooth_parameters(alpha_3d, alpha_3d_new, forgetting_factor)
 
-        # Append updated parameters to the history
         parameter_history.append(
             {"alpha_3a": alpha_3a, "alpha_3b": alpha_3b, "alpha_3d": alpha_3d}
         )
