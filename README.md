@@ -60,9 +60,11 @@ This query retrieves a week's worth of historical data required for proper param
 $ python pnnl_model3_method.py
 ```
 
-### Example Output
+### Example Py Output
 ```
-Optimal Start Time: 2024-12-19 05:45:46.237731
+Optimal Start Time (in minutes before occupancy): 180.00
+HVAC Start Timestamp: 2024-12-19 08:31:26.524257
+HVAC Start Time has already passed!
 Parameters: alpha_3a=7.76, alpha_3b=2.44, alpha_3d=-628.77
 ```
 
@@ -73,12 +75,8 @@ Parameters: alpha_3a=7.76, alpha_3b=2.44, alpha_3d=-628.77
 $ node pnnlModel3.js 
 ```
 
-### Key Updates in Scripts
-
-#### Python Script (`pnnl_model3_method.py`):
-- Renamed `start_time` to `warmup_time_minutes` in `historical_data`.
-- Updated all references to `warmup_time_minutes` in the Python code, including `update_parameters` and SQL references.
-
-#### JavaScript Script (`pnnlModel3.js`):
-- Renamed `start_time` to `warmupTimeMinutes` in `historicalData`.
-- Updated all corresponding logic to use `warmupTimeMinutes`.
+### Example Js Output
+```
+Optimal Start Time: Thu Dec 19 2024 08:32:47 GMT-0600 (Central Standard Time)
+Parameters: alpha3a=7.76, alpha3b=2.44, alpha3d=-628.77
+```
