@@ -14,9 +14,9 @@ The Model 3 algorithm calculates the optimal start time for HVAC systems by leve
 - **Occupied Setpoint Temperature**: Desired indoor temperature by occupancy time.
 
 The algorithm dynamically tunes three key parameters:
-- **`alpha_3a`**: Time required to change the indoor temperature by 1 degree.
-- **`alpha_3b`**: Influence of outdoor temperature on the indoor temperature change.
-- **`alpha_3d`**: Dynamic offset for start time adjustments.
+- **`alpha_3a`**: Time required to change the indoor temperature by 1 degree (**measured in minutes**).
+- **`alpha_3b`**: Influence of outdoor temperature on the indoor temperature change (**measured in degrees Fahrenheit**).
+- **`alpha_3d`**: Dynamic offset for start time adjustments (**measured in minutes**).
 
 These parameters are updated using exponential smoothing based on the historical data.
 
@@ -52,7 +52,6 @@ This query retrieves a week's worth of historical data required for proper param
    - The tuned parameters are applied to calculate the required preconditioning time.
    - The algorithm ensures the calculated time stays within defined bounds (e.g., no earlier than 180 minutes before occupancy).
 
-
 ## Python Implementation
 
 ### Running the Script
@@ -80,3 +79,4 @@ $ node pnnlModel3.js
 Optimal Start Time: Thu Dec 19 2024 08:32:47 GMT-0600 (Central Standard Time)
 Parameters: alpha3a=7.76, alpha3b=2.44, alpha3d=-628.77
 ```
+
