@@ -10,13 +10,13 @@ let alpha3d = 0; // Dynamic adjustment for start time
 
 // Historical data (fake data for 7 days)
 const historicalData = [
-  { zoneTemp: 50, outdoorTemp: 10, warmupTimeMinutes: 120 },
-  { zoneTemp: 48, outdoorTemp: 12, warmupTimeMinutes: 115 },
-  { zoneTemp: 52, outdoorTemp: 8, warmupTimeMinutes: 125 },
-  { zoneTemp: 50, outdoorTemp: 11, warmupTimeMinutes: 118 },
-  { zoneTemp: 51, outdoorTemp: 9, warmupTimeMinutes: 122 },
-  { zoneTemp: 49, outdoorTemp: 13, warmupTimeMinutes: 110 },
-  { zoneTemp: 47, outdoorTemp: 14, warmupTimeMinutes: 108 },
+  { zoneTemp: 50, outdoorTemp: 10, warmupTimeMinutesHistory: 120 },
+  { zoneTemp: 48, outdoorTemp: 12, warmupTimeMinutesHistory: 115 },
+  { zoneTemp: 52, outdoorTemp: 8, warmupTimeMinutesHistory: 125 },
+  { zoneTemp: 50, outdoorTemp: 11, warmupTimeMinutesHistory: 118 },
+  { zoneTemp: 51, outdoorTemp: 9, warmupTimeMinutesHistory: 122 },
+  { zoneTemp: 49, outdoorTemp: 13, warmupTimeMinutesHistory: 110 },
+  { zoneTemp: 47, outdoorTemp: 14, warmupTimeMinutesHistory: 108 },
 ];
 
 // Current Conditions
@@ -53,7 +53,7 @@ function updateParameters(historicalData, forgettingFactor) {
     const Tsp = currentConditions.occupiedSetPoint;
     const Tz = data.zoneTemp;
     const To = data.outdoorTemp;
-    const tActual = data.warmupTimeMinutes;
+    const tActual = data.warmupTimeMinutesHistory;
 
     // Calculate new alpha values based on historical data
     const alpha3aNew = Math.abs(tActual / (Tsp - Tz));
@@ -81,12 +81,7 @@ const optimalStartTime = calculateOptimalStart(
   alpha3d
 );
 
-// Display results
-const currentTime = new Date();
-const startTime = new Date(
-  currentTime.getTime() - optimalStartTime * 60000
-);
-console.log(`Optimal Start Time: ${startTime}`);
+console.log(`Optimal Start Time in Minutes: ${optimalStartTime }`);
 console.log(
   `Parameters: alpha3a=${alpha3a.toFixed(2)}, alpha3b=${alpha3b.toFixed(2)}, alpha3d=${alpha3d.toFixed(2)}`
 );

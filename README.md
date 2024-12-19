@@ -24,12 +24,12 @@ These parameters are updated using exponential smoothing based on the historical
 ### SQL Database Schema
 The algorithm assumes an SQL database containing the following table:
 
-| Column Name            | Data Type | Description                                      |
-|-------------------------|-----------|--------------------------------------------------|
-| `outdoor_temp`          | FLOAT     | Outdoor air temperature in degrees Fahrenheit.   |
-| `zone_temp`             | FLOAT     | Zone air temperature in degrees Fahrenheit.      |
-| `warmup_time_minutes`   | INT       | Captured preconditioning duration in minutes.    |
-| `timestamp`             | DATETIME  | Timestamp of the recorded data.                  |
+| Column Name                   | Data Type | Description                                      |
+|-------------------------------|-----------|--------------------------------------------------|
+| `outdoor_temp`                | FLOAT     | Outdoor air temperature in degrees Fahrenheit.   |
+| `zone_temp`                   | FLOAT     | Zone air temperature in degrees Fahrenheit.      |
+| `warmup_time_minutes_history` | INT       | Captured preconditioning duration in minutes.    |
+| `timestamp`                   | DATETIME  | Timestamp of the recorded data.                  |
 
 ### Example SQL Query
 ```sql
@@ -61,9 +61,7 @@ $ python pnnl_model3_method.py
 
 ### Example Py Output
 ```
-Optimal Start Time (in minutes before occupancy): 180.00
-HVAC Start Timestamp: 2024-12-19 08:31:26.524257
-HVAC Start Time has already passed!
+Optimal Start Time in Minutes: 180.00
 Parameters: alpha_3a=7.76, alpha_3b=2.44, alpha_3d=-628.77
 ```
 
@@ -76,7 +74,7 @@ $ node pnnlModel3.js
 
 ### Example Js Output
 ```
-Optimal Start Time: Thu Dec 19 2024 08:32:47 GMT-0600 (Central Standard Time)
+Optimal Start Time in Minutes: 180
 Parameters: alpha3a=7.76, alpha3b=2.44, alpha3d=-628.77
 ```
 
