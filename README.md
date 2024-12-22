@@ -8,10 +8,10 @@ This repository explores versatile algorithms for Automated Supervisory Optimiza
 - [ ] **[VAV AHU Supply Air Duct Static Pressure Setpoint Reset](https://github.com/bbartling/aso-pseudo-code/tree/develop/VAVAHUDuctStaticPressureReset)**
    - Based on GL36.
 
-- [ ] **[VAV AHU Supply Air Temperature Setpoint Reset](https://github.com/bbartling/aso-pseudo-code/tree/develop/VAVAHUTemperatureReset)**
+- [ ] **[VAV AHU Supply Air Temperature Setpoint Reset](https://github.com/bbartling/aso-pseudo-code/tree/develop/AhuTempSetpointReset)**
    - Based on GL36.
 
-- [ ] **[DOAS Unit Start and Stop](https://github.com/bbartling/aso-pseudo-code/tree/develop/DOASUnitStartStop)**
+- [ ] **[DOAS Unit Start and Stop](https://github.com/bbartling/aso-pseudo-code/tree/develop/DoasStartStop)**
    - Simple algorithm to start and stop equipment only when people are present.
    - Dedicated outside air system for heat pump and VRF systems providing ventilation only.
    - Requires calendar input for building start times.

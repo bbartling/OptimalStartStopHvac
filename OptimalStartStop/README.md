@@ -1,6 +1,3 @@
-Here's how your README will look with the collapsible details block added at the bottom. I've also ensured that it complements the existing content and removed redundancy:
-
-```markdown
 ## Model 3 Optimal Start Strategy for HVAC Systems
 
 This repository provides a tutorial on implementing the **Model 3 Optimal Start Strategy** for HVAC systems, inspired by the work of the Pacific Northwest National Laboratory (PNNL). The strategy determines the best preconditioning time to warm or cool a building before occupancy, based on historical data and dynamic parameter tuning. The algorithm is designed for skilled professionals in HVAC, Building Automation Systems (BAS), Automated Supervisory Optimization (ASO), and IoT who wish to learn the mechanics of this algorithm.
@@ -155,4 +152,3 @@ The AHU will receive zone air temperature data from the BAS supervisory controll
 If no historical data is available, the equipment starts at `earliestEquipStart`, calculated dynamically.
 
 </details>
-```
