@@ -5,7 +5,7 @@ This repository explores versatile algorithms for Automated Supervisory Optimiza
    - Based on PNNL research.
    - Requires calendar input for building start times.
 
-- [ ] **[VAV AHU Supply Air Duct Static Pressure Setpoint Reset](https://github.com/bbartling/aso-pseudo-code/tree/develop/VAVAHUDuctStaticPressureReset)**
+- [ ] **[VAV AHU Supply Air Duct Static Pressure Setpoint Reset](https://github.com/bbartling/aso-pseudo-code/tree/develop/AhuPressureSetpointReset)**
    - Based on GL36.
 
 - [ ] **[VAV AHU Supply Air Temperature Setpoint Reset](https://github.com/bbartling/aso-pseudo-code/tree/develop/AhuTempSetpointReset)**
