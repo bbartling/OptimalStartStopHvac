@@ -1,22 +1,22 @@
 ## aso-pseudo-code
 This repository explores versatile algorithms for Automated Supervisory Optimization (ASO), designed for implementation through IoT to enhance HVAC system performance in smart building environments.
 
-- [ ] **Optimal Start/Stop**
+- [ ] **[Optimal Start/Stop](https://github.com/bbartling/aso-pseudo-code/tree/develop/OptimalStartStop)**
    - Based on PNNL research.
    - Requires calendar input for building start times.
 
-- [ ] **VAV AHU Supply Air Duct Static Pressure Setpoint Reset**
+- [ ] **[VAV AHU Supply Air Duct Static Pressure Setpoint Reset](https://github.com/bbartling/aso-pseudo-code/tree/develop/VAVAHUDuctStaticPressureReset)**
    - Based on GL36.
 
-- [ ] **VAV AHU Supply Air Temperature Setpoint Reset**
+- [ ] **[VAV AHU Supply Air Temperature Setpoint Reset](https://github.com/bbartling/aso-pseudo-code/tree/develop/VAVAHUTemperatureReset)**
    - Based on GL36.
 
-- [ ] **DOAS Unit Start and Stop**
+- [ ] **[DOAS Unit Start and Stop](https://github.com/bbartling/aso-pseudo-code/tree/develop/DOASUnitStartStop)**
    - Simple algorithm to start and stop equipment only when people are present.
    - Dedicated outside air system for heat pump and VRF systems providing ventilation only.
    - Requires calendar input for building start times.
 
-- [ ] **AHU Night Heat or Cycling in Full Recirculation Air Mode**
+- [ ] **[AHU Night Heat or Cycling in Full Recirculation Air Mode](https://github.com/bbartling/aso-pseudo-code/tree/develop/AhuNightHeatCyclingInFullRecircMode)**
    - ASO monitors zone temperatures.
    - If the AHU wakes up, ensure it operates in full recirculation air mode:
      - If not, override AHU air dampers to full recirculation air mode.
