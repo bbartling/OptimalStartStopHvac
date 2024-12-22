@@ -1,8 +1,6 @@
 ## aso-pseudo-code
 This repository explores versatile algorithms for Automated Supervisory Optimization (ASO), designed for implementation through IoT to enhance HVAC system performance in smart building environments.
 
-
-
 - [ ] **Optimal Start/Stop**
    - Based on PNNL research.
    - Requires calendar input for building start times.
@@ -18,7 +16,7 @@ This repository explores versatile algorithms for Automated Supervisory Optimiza
    - Dedicated outside air system for heat pump and VRF systems providing ventilation only.
    - Requires calendar input for building start times.
 
-- [ ] **Night Heat or Cycling in Full Recirculation Air Mode**
+- [ ] **AHU Night Heat or Cycling in Full Recirculation Air Mode**
    - ASO monitors zone temperatures.
    - If the AHU wakes up, ensure it operates in full recirculation air mode:
      - If not, override AHU air dampers to full recirculation air mode.
