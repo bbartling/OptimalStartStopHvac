@@ -65,11 +65,14 @@ $ python night_recirc_mode.py
 
 #### Example Py Output
 ```
-Current Time: 3:00 AM
-Building Status: Unoccupied
-AHU Status: Active
-Damper Override: Dampers Closed for Full Recirculation Mode
-...
+Starting Night Recirculation Mode Control Simulation...
+Wednesday 18:26: Building is unoccupied. AHU is inactive. No action required.
+Friday 21:52: Building is unoccupied. AHU is inactive. No action required.
+Sunday 13:01: Building is unoccupied. AHU is inactive. No action required.
+Wednesday 03:28: Building is unoccupied. AHU is active. Free cooling disabled (OAT: 43.25°F). Dampers_Closed
+Monday 10:12: Building is occupied. Release_Control
+Thursday 02:43: Building is unoccupied. AHU is inactive. No action required.
+Friday 13:08: Building is occupied. Release_Control
 ```
 
 ---

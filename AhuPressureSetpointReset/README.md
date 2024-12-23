@@ -21,10 +21,10 @@ The algorithm assumes an SQL database containing the following table:
 
 | Column Name           | Data Type | Description                                              |
 |-----------------------|-----------|----------------------------------------------------------|
-| `damper_position`     | FLOAT     | Current VAV damper position as a percentage (0-1).       |
-| `static_pressure`     | FLOAT     | Current duct static pressure in inches WC.              |
-| `device_status`       | BOOLEAN   | Status of the associated device (on/off).               |
-| `timestamp`           | DATETIME  | Timestamp of the recorded data.                         |
+| `damper_positions`    | FLOAT     | Current VAV damper positions as a percentage (0-1).      |
+| `static_pressure`     | FLOAT     | Current duct static pressure in inches WC.               |
+| `device_status`       | BOOLEAN   | Status of the associated device (on/off).                |
+| `timestamp`           | DATETIME  | Timestamp of the recorded data.                          |
 
 ### Example SQL Query
 ```sql
@@ -49,7 +49,7 @@ This query retrieves a week's worth of historical data required for proper param
 ## Adjustable Algorithm Variables
 
 | Variable             | Description                                                    | Default Value         |
-|-----------------------|----------------------------------------------------------------|-----------------------|
+|----------------------|----------------------------------------------------------------|-----------------------|
 | **SP0**              | Initial static pressure setpoint                               | `0.5” WC`            |
 | **SPmin**            | Minimum allowable static pressure                              | `0.15” WC`           |
 | **SPmax**            | Maximum allowable static pressure                              | `1.5” WC`            |
@@ -58,7 +58,8 @@ This query retrieves a week's worth of historical data required for proper param
 | **I**                | Number of ignored requests (highest damper positions)          | `2`                  |
 | **SPtrim**           | Amount by which the setpoint is trimmed if below thresholds    | `-0.02” WC`          |
 | **SPres**            | Amount by which the setpoint is increased if above thresholds  | `0.04” WC`           |
-| **SPres-max**        | Maximum allowable response adjustment per time interval        | `0.06” WC`           |
+| **HighDamperSpt**    | Damper position threshold to generate requests (dpr > 85%)     | `0.85%`              |
+
 
 ## Python Implementation
 
@@ -69,9 +70,26 @@ $ python ahu_static_pressure_sim.py
 
 ### Example Py Output
 ```
-Starting AHU Static Pressure Simulation...
-Current Static Pressure: 0.48” WC
-Current Static Pressure: 0.46” WC
+Ignored Damper Positions: 0.84,0.84
+Max Damper Position (After Excluding Top 2): 0.84
+Net Requests (Factoring Ignored Dampers): 0
+We need less static!...
+Previous Static Pressure Setpoint: 0.56” WC
+Current Static Pressure Setpoint: 0.54” WC (decreased)
+
+Ignored Damper Positions: 0.91,0.87
+Max Damper Position (After Excluding Top 2): 0.87
+Net Requests (Factoring Ignored Dampers): 1
+We need more static!...
+Previous Static Pressure Setpoint: 0.54” WC
+Current Static Pressure Setpoint: 0.60” WC (increased)
+
+Ignored Damper Positions: 0.79,0.74
+Max Damper Position (After Excluding Top 2): 0.72
+Net Requests (Factoring Ignored Dampers): 0
+We need less static!...
+Previous Static Pressure Setpoint: 0.60” WC
+Current Static Pressure Setpoint: 0.58” WC (decreased)
 ...
 ```
 
@@ -85,9 +103,20 @@ $ node ahuStaticPressureSim.js
 ### Example Js Output
 ```
 Starting AHU Static Pressure Simulation...
-Current Static Pressure: 0.48” WC
-Current Static Pressure: 0.46” WC
-...
+Ignore Var Set to 2 for the simulation...
+Ignored Damper Positions: 0.92,0.92
+Max Damper Position (After Excluding Top 2): 0.78
+Net Requests (Factoring Ignored Dampers): 0
+We need less static!...
+Previous Static Pressure Setpoint: 0.50” WC
+Current Static Pressure Setpoint: 0.50” WC (decreased)
+
+Ignored Damper Positions: 0.85,0.84
+Max Damper Position (After Excluding Top 2): 0.81
+Net Requests (Factoring Ignored Dampers): 0
+We need less static!...
+Previous Static Pressure Setpoint: 0.50” WC
+Current Static Pressure Setpoint: 0.50” WC (decreased)
 ```
 
 ---

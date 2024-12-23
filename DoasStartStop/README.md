@@ -64,9 +64,17 @@ $ python doas_unit_control.py
 
 #### Example Py Output
 ```
-Current Time: 5:30 PM
-Building Status: Occupied
-DOAS Status: Released to BAS Control
+Starting DOAS Unit Control Simulation...
+Sunday 03:15: Building is unoccupied. Override the BAS! Command_DOAS_Off
+Thursday 03:40: Building is unoccupied. Override the BAS! Command_DOAS_Off
+Friday 06:43: Building is unoccupied. Override the BAS! Command_DOAS_Off
+Friday 06:16: Building is unoccupied. Override the BAS! Command_DOAS_Off
+Monday 02:57: Building is unoccupied. Override the BAS! Command_DOAS_Off
+Wednesday 19:23: Building is unoccupied. Override the BAS! Command_DOAS_Off
+Wednesday 10:15: Building is occupied. Release back to the BAS! Release_DOAS_Overrides
+Friday 11:05: Building is occupied. Release back to the BAS! Release_DOAS_Overrides
+Monday 22:01: Building is unoccupied. Override the BAS! Command_DOAS_Off
+Wednesday 23:53: Building is unoccupied. Override the BAS! Command_DOAS_Off
 ...
 ```
 
@@ -81,9 +89,14 @@ $ node doasUnitControl.js
 
 #### Example Js Output
 ```
-Current Time: 5:30 PM
-Building Status: Occupied
-DOAS Status: Released to BAS Control
+Starting DOAS Unit Control Simulation...
+Thursday 14:38: Building is occupied. Release back to the BAS! Release_DOAS_Overrides
+Thursday 04:13: Building is unoccupied. Override the BAS! Command_DOAS_Off
+Friday 20:25: Building is unoccupied. Override the BAS! Command_DOAS_Off
+Sunday 14:06: Building is unoccupied. Override the BAS! Command_DOAS_Off
+Wednesday 12:31: Building is occupied. Release back to the BAS! Release_DOAS_Overrides
+Sunday 18:43: Building is unoccupied. Override the BAS! Command_DOAS_Off
+Wednesday 20:31: Building is unoccupied. Override the BAS! Command_DOAS_Off
 ...
 ```
 
