@@ -3,15 +3,16 @@
 This repository provides a tutorial on implementing the **Model 3 Optimal Start Strategy** for HVAC systems, inspired by the work of the Pacific Northwest National Laboratory (PNNL). The strategy determines the best preconditioning time to warm or cool a building before occupancy, based on historical data and dynamic parameter tuning. The algorithm is designed for skilled professionals in HVAC, Building Automation Systems (BAS), Automated Supervisory Optimization (ASO), and IoT who wish to learn the mechanics of this algorithm.
 
 ## Key Insights
-- **Dynamic Tuning**: Parameters adapt over time, using a week's worth of historical data for proper tuning.
+- **Dynamic Tuning**: Parameters adapt over time, using a week's worth of historical data for proper tuning. Potentially more data could be used in creating better models. Minimum is 7 days but algorithm could default to 15 days data.
 - **Inputs from BAS Telemetry**: Outdoor air temperature and zone temperature data are expected to come from sensors ingested into a local BAS system and stored in an SQL database.
-- **Citing PNNL**: This work builds on concepts developed by PNNL for advancing energy-efficient and grid-interactive buildings. Visit the [PNNL VOLTTRON documentation](https://volttron.readthedocs.io/en/main/) for more insights.
+- **Citing PNNL**: This work builds on concepts developed by PNNL for advancing energy-efficient and grid-interactive buildings. Visit the [PNNL VOLTTRON documentation](https://volttron.readthedocs.io/en/main/) for more insights. Also see the `Optimal Start Control for ACs and HPs.pdf` in this repo directory.
 
 ## Overview of Model 3
 The Model 3 algorithm calculates the optimal start time for HVAC systems by leveraging the following inputs:
-- **Outdoor Air Temperature**: Current temperature outside the building.
-- **Zone Air Temperature**: Current indoor temperature.
-- **Occupied Setpoint Temperature**: Desired indoor temperature by occupancy time.
+- **Outdoor Air Temperature**: Current temperature outside the building at the time of the algorithm execution.
+- **Zone Air Temperature**: Current indoor temperature at the time of the algorithm execution.
+- **Occupied Setpoint Temperature**: Desired indoor temperature by occupancy time or occupied zone air tempertaure setpoint.
+- **Warm Up Time In Minutes**: Time in minutes from previous warm up events.
 
 The algorithm dynamically tunes three key parameters:
 - **`alpha_3a`**: Time required to change the indoor temperature by 1 degree (**measured in minutes**).
@@ -45,11 +46,11 @@ This query retrieves a week's worth of historical data required for proper param
 
 | **Variable**             | **Description**                                              | **Default Value**       |
 |---------------------------|--------------------------------------------------------------|-------------------------|
-| **buildingOccStart**      | Defines the building occupancy start time as specified by the BAS schedule. | `H:MM`                |
-| **earliestEquipStart**    | The earliest time before `buildingOccStart` when equipment can begin operation. | `90 minutes before buildingOccStart` |
-| **earlyMorningConditionsCheck** | A time prior to `earliestEquipStart` to assess outdoor and indoor air temperatures. | `H:MM`                |
-| **zoneTempOffsetIgnore**  | Threshold value (in degrees) to bypass optimal start if the deviation is less than this value. | `1°F`                 |
-| **warmupTimeMinutesHistory** | Time (in minutes) required to precondition zones before occupancy, retrieved or calculated from historical data. | `Variable`            |
+| **Building Occ Start**      | Defines the building occupancy start time as specified by the BAS schedule. | `H:MM`                |
+| **Earliest Equip Start**    | The earliest time before `buildingOccStart` when equipment can begin operation. | `90 minutes before buildingOccStart` |
+| **EarlyMorning Conditions Check** | A time (default: 4:00 AM) when the current outside air temperature and zone air temperature are assessed to calculate the optimal start time in minutes. | `4:00 AM`             |
+| **Zone Temp Offset Ignore**  | Threshold value (in degrees) to bypass optimal start if the deviation is less than this value. | `1°F`                 |
+| **Warmup Time Minutes History** | Time (in minutes) required to precondition zones before occupancy, retrieved or calculated from historical data. | `Variable`            |
 
 ---
 
@@ -131,7 +132,7 @@ Automatically calculates the ideal equipment start time each day to ensure appro
 ### AHU Controller
 The AHU will receive zone air temperature data from the BAS supervisory controller, enabling it to perform night heating or cooling cycles as part of the unoccupied building sequencing.
 
-- **Writable Variable:** Zone air temperature setpoint (effective)
+- **Writable Variable:** Zone air temperature setpoint (on AHU controller)
   - Point Name: ZoneTempSp
   - Marker Tags: zone, air, temp, effective, sp
 - **Read-Only Variables:**
@@ -143,9 +144,8 @@ The AHU will receive zone air temperature data from the BAS supervisory controll
 - The algorithm monitors the time and evaluates conditions at `earlyMorningConditionsCheck`. 
 - The decision to bypass optimal start is based on:
   - Holiday/weekend (BAS schedule)
-  - Mild outdoor conditions (temperature difference < `zoneTempOffsetIgnore`)
-
-
+  - Mild zone air temperature deviations (temperature difference < `zoneTempOffsetIgnore`)
+- **Algorithm or IoT must be able to store previous time deltas or time required in minutes for how long it takes to warm up the zone to the occupied zone air temperature setpoint.** If it a heating season warmup the algorithm or IoT would be calculating time required to warm up the **Zone Temp Effective Heating Setpoint.** If this is a cooling application in calculating minutes required to cool down the zone prior to occupancy the algorithm or IoT would be calculating time required in minutes to cool down to the **Zone Temp Effective Cooling Setpoint.** Typically in BAS effective heating or cooling setpoints factor in a deadband of about +- 2°F of the actual zone temperature setpoints to come up with effective heating or cooling setpoints.
 
 ### Data Retrieval
 - Retrieves historical data from an SQL database during warm-up or cool-down phases.
