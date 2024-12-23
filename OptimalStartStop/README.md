@@ -39,18 +39,19 @@ WHERE timestamp >= NOW() - INTERVAL 7 DAY;
 ```
 This query retrieves a week's worth of historical data required for proper parameter tuning.
 
-## How the Algorithm Works
-1. **Historical Data Retrieval**:
-   - The algorithm queries the SQL database to fetch the historical data.
-   - At least one week's worth of data is needed for effective parameter tuning.
+---
 
-2. **Parameter Tuning**:
-   - The algorithm dynamically updates the parameters `alpha_3a`, `alpha_3b`, and `alpha_3d` using exponential smoothing.
-   - Historical warm-up times (`warmup_time_minutes`) are compared with the differences in outdoor and indoor temperatures to refine the parameters.
+### Adjustable Algorithm Variables
 
-3. **Optimal Start Time Calculation**:
-   - The tuned parameters are applied to calculate the required preconditioning time.
-   - The algorithm ensures the calculated time stays within defined bounds (e.g., no earlier than 180 minutes before occupancy).
+| **Variable**             | **Description**                                              | **Default Value**       |
+|---------------------------|--------------------------------------------------------------|-------------------------|
+| **buildingOccStart**      | Defines the building occupancy start time as specified by the BAS schedule. | `H:MM`                |
+| **earliestEquipStart**    | The earliest time before `buildingOccStart` when equipment can begin operation. | `90 minutes before buildingOccStart` |
+| **earlyMorningConditionsCheck** | A time prior to `earliestEquipStart` to assess outdoor and indoor air temperatures. | `H:MM`                |
+| **zoneTempOffsetIgnore**  | Threshold value (in degrees) to bypass optimal start if the deviation is less than this value. | `1°F`                 |
+| **warmupTimeMinutesHistory** | Time (in minutes) required to precondition zones before occupancy, retrieved or calculated from historical data. | `Variable`            |
+
+---
 
 ## Python Implementation
 
@@ -95,21 +96,35 @@ Reduce equipment runtime & energy use building-wide
 (High)
 
 ### Process
-Automatically calculates the ideal equipment start time each day to ensure appropriate temperatures by the specified occupied time. The program learns the recovery rate of the space based on previous days' rates and automatically adjusts for differing outdoor air temperatures.
+
+Automatically calculates the ideal equipment start time each day to ensure appropriate temperatures by the specified occupied time. The program learns the recovery rate of the space based on previous days' rates and automatically adjusts for differing outdoor air temperatures. The algorithm works as follows:
+
+1. **Historical Data Retrieval**:
+   - Queries the SQL database to fetch at least one week's worth of data.
+   - Data includes outdoor air temperatures, indoor zone temperatures, and historical warm-up times.
+
+2. **Parameter Tuning**:
+   - Dynamically updates parameters (`alpha_3a`, `alpha_3b`, and `alpha_3d`) using exponential smoothing.
+   - Compares historical warm-up times with outdoor and indoor temperature differences to refine calculations.
+
+3. **Optimal Start Time Calculation**:
+   - Applies tuned parameters to calculate the required preconditioning time.
+   - Ensures the calculated start time remains within defined limits (e.g., no earlier than 180 minutes before occupancy).
 
 ---
 
-### Required Algorithm Input
-Zone air temperatures can be averaged or worst-case scenario VAV box in the system (e.g., zones with 2 exterior walls, etc.).
+### Data Model in Haystack
 
-| **Point Name** | **navName** | **Marker Tags in Haystack** |
-|----------------|-------------|-----------------------------|
-| Zone Temperature            | ZnTemp         | zone, air, temp, sensor               |
-| Zone Temperature Setpoint Effective | ZnTempSp      | zone, air, temp, effective, sp        |
-| Zone Temp Occupied Cooling Setpoint | OccCoolSp     | zone, air, temp, occ, cooling, sp     |
-| Zone Temp Occupied Heating Setpoint | OccHeatSp     | zone, air, temp, occ, heating, sp     |
-| Zone Temp Effective Cooling Setpoint | EffClgSp      | zone, air, temp, occ, cooling, sp     |
-| Zone Temp Effective Heating Setpoint | EffHtgSp      | zone, air, temp, occ, heating, sp     |
+**Note:** Zone air temperatures can be averaged or use the worst-case scenario VAV box in the system (e.g., zones with two exterior walls, etc.).
+
+| **Point Name**                       | **navName**   | **Marker Tags in Haystack**           |
+|--------------------------------------|---------------|----------------------------------------|
+| **Zone Temperature**                 | `ZnTemp`      | `zone`, `air`, `temp`, `sensor`       |
+| **Zone Temperature Setpoint Effective** | `ZnTempSp`   | `zone`, `air`, `temp`, `effective`, `sp` |
+| **Zone Temp Occupied Cooling Setpoint** | `OccCoolSp` | `zone`, `air`, `temp`, `occ`, `cooling`, `sp` |
+| **Zone Temp Occupied Heating Setpoint** | `OccHeatSp` | `zone`, `air`, `temp`, `occ`, `heating`, `sp` |
+| **Zone Temp Effective Cooling Setpoint** | `EffClgSp`  | `zone`, `air`, `temp`, `occ`, `cooling`, `sp` |
+| **Zone Temp Effective Heating Setpoint** | `EffHtgSp`  | `zone`, `air`, `temp`, `occ`, `heating`, `sp` |
 
 ---
 
@@ -121,16 +136,6 @@ The AHU will receive zone air temperature data from the BAS supervisory controll
   - Marker Tags: zone, air, temp, effective, sp
 - **Read-Only Variables:**
   - Outside Air Temperature (OaTemp): outside, air, temp, sensor
-
----
-
-### Adjustable Algorithm Variables
-
-- **buildingOccStart:** Defines the building occupancy start time as specified by the BAS schedule (e.g., `H:MM`).
-- **earliestEquipStart:** The earliest time (H:MM) before `buildingOccStart` when equipment can begin operation (default: 90 minutes before `buildingOccStart`).
-- **earlyMorningConditionsCheck:** A time (H:MM) prior to `earliestEquipStart` to assess outdoor/indoor air temperatures.
-- **zoneTempOffsetIgnore:** Threshold value in degrees (default: 1°F) to bypass the optimal start if the deviation is less than this value.
-- **warmupTimeMinutesHistory:** Time (in minutes) needed to precondition zones before occupancy, retrieved or calculated from historical data.
 
 ---
 

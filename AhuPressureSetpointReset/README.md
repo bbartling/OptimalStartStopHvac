@@ -115,22 +115,15 @@ Adjustments occur incrementally to maintain system stability, with limits enforc
 
 ---
 
-### Adjustable Algorithm Variables
-- **SP0**: Initial setpoint for static pressure.
-- **SPmin**: Minimum allowable static pressure.
-- **SPmax**: Maximum allowable static pressure.
-- **SPtrim**: Amount by which the setpoint is trimmed if below thresholds.
-- **SPres**: Amount by which the setpoint is increased if above thresholds.
-- **SPres-max**: Maximum allowable response adjustment per time interval.
+## Data Model in Haystack
 
----
+**Note:** The algorithm requires proper Haystack markers and tags for AHU leaving air duct static pressure and **ALL** VAV box air damper commands associated with that AHU within the duct system.
 
-### Data Retrieval
-- Historical data is retrieved from an SQL database, including:
-  - Damper positions
-  - Static pressure
-  - Device status
+| **Point Name**                           | **navName**             | **Marker Tags in Haystack**                     |
+|------------------------------------------|-------------------------|------------------------------------------------|
+| **AHU Leaving Air Duct Static Pressure** | `ahuDuctStaticPress`    | `ahu`, `duct`, `static`, `pressure`, `sensor`  |
+| **AHU Leaving Air Duct Static Pressure Setpoint** | `ahuDuctStaticPressSp` | `ahu`, `duct`, `static`, `pressure`, `sp`      |
+| **VAV Box Air Damper Command**           | `vavAirDamperCmd`       | `vav`, `air`, `damper`, `cmd`                  |
 
-This data is used to refine the algorithm’s dynamic adjustments.
 
 </details>

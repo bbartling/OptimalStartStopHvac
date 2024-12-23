@@ -114,17 +114,17 @@ The algorithm adjusts the SAT setpoint dynamically based on the following rules:
 
 ---
 
-### Adjustable Algorithm Variables
-- **SP0**: Initial SAT setpoint.
-- **SPmin**: Minimum SAT setpoint.
-- **SPmax**: Maximum SAT setpoint.
-- **OATmin**: Minimum OAT for reset control.
-- **OATmax**: Maximum OAT for reset control.
+## Data Model in Haystack
 
----
+**Note:** The algorithm requires proper Haystack markers and tags for AHU leaving air temperature, outside air temperature, and **ALL** associated space air temperature sensors to generate requests for SAT adjustments.
 
-### Data Retrieval
-- Historical data is retrieved from an SQL database to analyze and adjust the SAT dynamically.
-- Input variables include outside air temperature and device status.
+| **Point Name**                           | **navName**             | **Marker Tags in Haystack**                     |
+|------------------------------------------|-------------------------|------------------------------------------------|
+| **AHU Leaving Air Temperature**          | `ahuLeavingAirTemp`     | `ahu`, `leaving`, `air`, `temp`, `sensor`      |
+| **AHU Leaving Air Temperature Setpoint** | `ahuLeavingAirTempSp`   | `ahu`, `leaving`, `air`, `temp`, `sp`          |
+| **Space Air Temperature**                | `spaceAirTemp`          | `space`, `air`, `temp`, `sensor`               |
+| **Space Air Temperature Cooling Setpoint** | `spaceAirTempCoolSp`   | `space`, `air`, `temp`, `cooling`, `sp`        |
+| **Space Air Temperature Heating Setpoint** | `spaceAirTempHeatSp`   | `space`, `air`, `temp`, `heating`, `sp`        |
+| **Outside Air Temperature**              | `outsideAirTemp`        | `outside`, `air`, `temp`, `sensor`             |
 
 </details>

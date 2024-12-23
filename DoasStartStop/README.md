@@ -121,6 +121,18 @@ Moderate
 
 ---
 
+## Data Model in Haystack
+
+**Note:** The algorithm requires proper Haystack markers and tags for the building schedule and occupancy commands to manage the DOAS unit operation effectively.
+
+| **Point Name**                        | **navName**             | **Marker Tags in Haystack**               |
+|---------------------------------------|-------------------------|--------------------------------------------|
+| **Building Occupancy Schedule**       | `buildingOccSchedule`   | `schedule`, `building`, `occ`             |
+| **DOAS Occupancy Command**            | `doasOccCmd`            | `doas`, `occ`, `cmd`                      |
+| **DOAS Status**                       | `doasStatus`            | `doas`, `status`                          |
+
+---
+
 ### Adjustable Algorithm Variables
 - **Building Start Time**: Defines when occupancy begins.
 - **Building End Time**: Defines when occupancy ends.

@@ -2,10 +2,14 @@
 
 This repository provides a tutorial on implementing the **Night Heat or Cycling in Full Recirculation Air Mode Algorithm** for HVAC systems. The algorithm ensures energy efficiency by monitoring AHU (Air Handling Unit) operations during night-time heating or cooling calls and overriding dampers to operate in full recirculation air mode.
 
+### Notes
+
+This algorithm can be further enhanced by monitoring zone air temperature values to optimize AHU operation. If there are no active heating or cooling calls, the AHU can be overridden to remain OFF, running only when an actual unoccupied heating or cooling demand is detected. Energy code standards recommend unoccupied cooling setpoints of 90°F and unoccupied heating setpoints of 55°F, though these are often not implemented in Building Automation Systems (BAS). Integrating these setpoints can help ensure compliance while reducing energy consumption. ***For now please exclude this thought!***
+
 ---
 
 ### Key Insights
-- **Energy Efficiency**: Ensures AHU dampers are closed during unoccupied hours to prevent outdoor air intake and conserve energy.
+- **Energy Efficiency**: Ensures AHU dampers remain closed during unoccupied hours, preventing unnecessary outdoor air intake and conserving energy when the building is not actively in use. For school districts, this should align with the district's defined schedule, including start and end times for regular school hours. It should exclude minimally occupied after-hours periods, such as school activities or custodial overnight cleaning. Events with large gatherings, such as sports games in gymnasiums or theater performances, should follow full occupancy ventilation requirements to maintain adequate air exchange. Conversely, activities with minimal occupancy, like sports practices, may operate with reduced ventilation, as design ventilation rates typically account for the maximum occupancy in terms of CFM/person.
 - **Optimized Control**: Overrides AHU dampers to full recirculation mode during night-time heating or cooling.
 - **Flexible Scheduling**: Integrates with BAS schedules via BACnet or similar protocols, a calendar widget in IoT, or hardcoded start/stop times and days of operation.
 
@@ -19,8 +23,7 @@ The algorithm monitors AHU operations and building schedules to determine the ne
 #### Requirements:
 1. **Schedule Input**: The building occupancy schedule can come from:
    - **Building Automation System (BAS)**: Utilizing BACnet or similar communication protocols.
-   - **IoT Calendar Widget**: Allows dynamic scheduling through a user interface.
-   - **Hardcoded Values**: Start and stop times, as well as occupied days, are defined directly in the configuration.
+   - **IoT Calendar Widget**: Allows dynamic scheduling through a user interface or **Hardcoded Values** for the start and stop times, as well as occupied days, are defined directly in the configuration.
 
 2. **AHU System**: The air handling unit must support damper control for recirculation mode.
 
@@ -28,13 +31,13 @@ The algorithm monitors AHU operations and building schedules to determine the ne
 
 ### Adjustable Algorithm Variables
 
-| Variable              | Description                                                    | Default Value         |
-|------------------------|----------------------------------------------------------------|-----------------------|
-| **Building Start Time**| The time when the building becomes occupied.                  | `7:00 AM`            |
-| **Building End Time**  | The time when the building becomes unoccupied.                | `6:00 PM`            |
-| **Days of Week**       | Days when the building is occupied.                           | `Monday-Friday`      |
-| **Override Command**   | Command to close AHU dampers for recirculation mode.          | `Dampers_Closed`     |
-| **Release Command**    | Command to release damper control to BAS during occupied hours.| `Release_Control`   |
+| **Variable**                            | **Description**                                              | **Default Value**      |
+|-----------------------------------------|--------------------------------------------------------------|------------------------|
+| **Building Start Time**                 | The time when the building becomes occupied.                 | `7:00 AM`             |
+| **Building End Time**                   | The time when the building becomes unoccupied.               | `6:00 PM`             |
+| **Days of Week**                        | Days when the building is occupied.                          | `Monday-Friday`       |
+| **Economizer High Limit Temperature**   | The maximum outdoor air temperature for enabling free cooling.| `60°F`                |
+| **Economizer Low Limit Temperature**    | The minimum outdoor air temperature for enabling free cooling.| `50°F`                |
 
 ---
 
@@ -121,16 +124,20 @@ Moderate
 
 ---
 
-### Adjustable Algorithm Variables
-- **Building Start Time**: Defines when occupancy begins.
-- **Building End Time**: Defines when occupancy ends.
-- **Days of Week**: Specifies occupied days.
-- **Override Command**: Command to close AHU dampers.
-- **Release Command**: Command to allow normal BAS operation.
+## Data Model in Haystack
 
----
+**Note:** The algorithm requires proper Haystack markers and tags for monitoring AHU or RTU operations during unoccupied hours, including the building occupancy schedule, outdoor air damper commands, minimum outdoor air damper setpoints, and outdoor air temperature for economizer operations.
 
-### Notes
-This algorithm ensures energy savings by preventing unnecessary outdoor air intake during night-time heating or cooling calls. It is ideal for AHUs operating in systems where energy conservation during unoccupied hours is critical.
+| **Point Name**                               | **navName**               | **Marker Tags in Haystack**                     |
+|----------------------------------------------|---------------------------|------------------------------------------------|
+| **Building Occupancy Schedule**              | `buildingOccSchedule`     | `schedule`, `building`, `occ`                 |
+| **AHU/RTU Operating Status**                 | `ahuRtuStatus`            | `ahu`, `rtu`, `status`, `cmd`                 |
+| **Minimum Outdoor Air Damper Setpoint**      | `minOaDamperSp`           | `ahu`, `rtu`, `damper`, `outdoor`, `sp`       |
+| **Outdoor Air Damper Command**               | `oaDamperCmd`             | `ahu`, `rtu`, `damper`, `outdoor`, `cmd`      |
+| **Outside Air Temperature**                  | `outsideAirTemp`          | `outside`, `air`, `temp`, `sensor`            |
+| **Economizer High Limit Temperature**        | `economizerHighLimitTemp` | `ahu`, `economizer`, `temp`, `high`, `limit`  |
+| **Economizer Low Limit Temperature**         | `economizerLowLimitTemp`  | `ahu`, `economizer`, `temp`, `low`, `limit`   |
+
+
 
 </details>
