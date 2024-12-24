@@ -5,7 +5,7 @@ This repository provides a tutorial on implementing the **Model 3 Optimal Start 
 ## Activity Diagram of Entire Process
 
 <details>
-  <summary>Algorithm Activity Process</summary>
+  <summary>Entire Algorithm Activity Process</summary>
 
 ```mermaid
 graph TD
@@ -73,9 +73,15 @@ The algorithm dynamically tunes three key parameters:
 - **`alpha_3b`**: Influence of outdoor temperature on the indoor temperature change (**measured in degrees Fahrenheit**).
 - **`alpha_3d`**: Dynamic offset for start time adjustments (**measured in minutes**).
 
-These parameters are updated using exponential smoothing based on the historical data.
+These parameters are updated using exponential smoothing based on the historical data. This approach uses historical warm-up data and current conditions to dynamically adjust the optimal start time for HVAC systems, ensuring energy efficiency and comfort. It employs a mathematical model that relates indoor and outdoor temperatures to warm-up times, factoring in a forgetting mechanism to weigh recent data more heavily while gradually phasing out older patterns. Key parameters, like how long it takes to change indoor temperature per degree and how outdoor conditions influence warm-up, are updated using exponential smoothing based on historical performance. The result is a refined prediction of when to start equipment, bounded by practical limits, to meet the occupied temperature setpoint at the scheduled time.
+
+</details>
 
 ## Required Inputs
+
+<details>
+  <summary>Algorithm Inputs, Variables, and Data Retrieval</summary>
+
 ### SQL Database Schema
 The algorithm assumes an SQL database containing the following table:
 
@@ -106,42 +112,12 @@ This query retrieves a week's worth of historical data required for proper param
 | **Zone Temp Offset Ignore**  | Threshold value (in degrees) to bypass optimal start if the deviation is less than this value. | `1°F`                 |
 | **Warmup Time Minutes History** | Time (in minutes) required to precondition zones before occupancy, retrieved or calculated from historical data. | `Variable`            |
 
----
-
-## Python Implementation
-
-### Running the Script
-```bash
-$ python pnnl_model3_method.py
-```
-
-### Example Py Output
-```
-Optimal Start Time in Minutes: 180.00
-Parameters: alpha_3a=7.76, alpha_3b=2.44, alpha_3d=-628.77
-```
-
-## JavaScript Implementation
-
-### Running the Script
-```bash
-$ node pnnlModel3.js 
-```
-
-### Example Js Output
-```
-Optimal Start Time in Minutes: 180
-Parameters: alpha3a=7.76, alpha3b=2.44, alpha3d=-628.77
-```
-
 </details>
 
----
-
-## Optimum Start/Stop Algorithm
+## Algorithm Details and Data Model
 
 <details>
-  <summary>Algorithm Details</summary>
+  <summary>Algorithm Details and Data Model</summary>
 
 ### Aim
 Reduce equipment runtime & energy use building-wide
@@ -213,3 +189,32 @@ The AHU will receive zone air temperature data from the BAS supervisory controll
 If no historical data is available, the equipment starts at `earliestEquipStart`, calculated dynamically.
 
 </details>
+
+
+## Simulations of modeling optimal start minutes
+
+### Python Implementation
+```bash
+$ python pnnl_model3_method.py
+```
+
+### Example Py Output
+```
+Optimal Start Time in Minutes: 180.00
+Parameters: alpha_3a=7.76, alpha_3b=2.44, alpha_3d=-628.77
+```
+
+### JavaScript Implementation
+```bash
+$ node pnnlModel3.js 
+```
+
+### Example Js Output
+```
+Optimal Start Time in Minutes: 180
+Parameters: alpha3a=7.76, alpha3b=2.44, alpha3d=-628.77
+```
+
+## TODO 
+
+Make unit tests for JavaScript in https://vitest.dev/
