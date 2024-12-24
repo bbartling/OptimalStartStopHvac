@@ -2,7 +2,61 @@
 
 This repository provides a tutorial on implementing the **Model 3 Optimal Start Strategy** for HVAC systems, inspired by the work of the Pacific Northwest National Laboratory (PNNL). The strategy determines the best preconditioning time to warm or cool a building before occupancy, based on historical data and dynamic parameter tuning. The algorithm is designed for skilled professionals in HVAC, Building Automation Systems (BAS), Automated Supervisory Optimization (ASO), and IoT who wish to learn the mechanics of this algorithm.
 
-## Key Insights
+## Activity Diagram of Entire Process
+
+<details>
+  <summary>Algorithm Activity Process</summary>
+
+```mermaid
+graph TD
+    subgraph Phase1[Twilight Hours and Wait Phase]
+        CheckTime[Start] --> time0[Is Current Time < Early Morning Conditions Check? Default is 4 AM]
+        time0 -->|Yes| time1[Is Current Time > Building Occ Start?]
+        time0 -->|No| sleepOneMinStart[Sleep 1 Minute]
+        time1 -->|Yes| time2[Is Current Time < Building Occ Start?]
+        time1 -->|No| sleepOneMinStart
+        time2 -->|Yes| holidayWeekendCheck[Is it a Holiday or Weekend?]
+        time2 -->|No| sleepOneMinStart
+        holidayWeekendCheck -->|No| conditionCheck[Run Early Morning Conditions Check]
+        holidayWeekendCheck -->|Yes| sleepOneMinStart
+    end
+
+    subgraph Phase2[Calculations and Wait Phase]
+        conditionCheck --> sqlForConditionCheck[Fetch Current Outdoor Air and Zone Air Temperatures and Previous Warmup Times in Minutes]
+        sqlForConditionCheck --> modelOptStartData[Input Data Into Model to Compute in Minutes for the Optimal Start Time]
+        modelOptStartData --> computeTimeDeltaUntilBuildOcc[Compute Time Delta in Minutes Until Building Occupied]
+        computeTimeDeltaUntilBuildOcc -->|Yes| timeCheckBeforeOcc[Is Current Time Delta in Minutes Until Building Occ < Modeled Opt Start in Minutes]
+        computeTimeDeltaUntilBuildOcc -->|No| sleepOneMinOptStart[Sleep 1 Minute]
+        sleepOneMinOptStart --> computeTimeDeltaUntilBuildOcc
+        timeCheckBeforeOcc --> equipmentStart[Start the AHU in Recirc Air Mode]
+    end
+
+    subgraph Phase3[Action Phase]
+        equipmentStart --> recordCacheStart[Store Records of the Optimal Started Time!]
+        recordCacheStart --> hasZoneWarmedUp[Has the Zone Warmed Up to Setpoint?]
+        hasZoneWarmedUp -->|Yes| warmUpComplete[Store Records of the Optimal Stop Time!]
+        warmUpComplete --> terminateThread[Terminate Process or Thread]
+        hasZoneWarmedUp -->|No| hasZoneWarmedUpSleep[Sleep 1 Minute]
+        hasZoneWarmedUpSleep --> hasZoneWarmedUp
+        hasZoneWarmedUp --> isBuildingOccupied[Is the Building Occupied?]
+        isBuildingOccupied -->|Yes| releaseBackToBas[Release Control Back To The BAS]
+        isBuildingOccupied -->|No| hasZoneWarmedUpSleep
+        releaseBackToBas --> End[End]
+    end
+
+    sleepOneMinStart --> CheckTime
+    End --> CheckTime[Start]
+
+
+```
+</details>
+
+
+## PNNL Model Key Insights
+
+<details>
+  <summary>Mathematics Modeling Details</summary>
+
 - **Dynamic Tuning**: Parameters adapt over time, using a week's worth of historical data for proper tuning. Potentially more data could be used in creating better models. Minimum is 7 days but algorithm could default to 15 days data.
 - **Inputs from BAS Telemetry**: Outdoor air temperature and zone temperature data are expected to come from sensors ingested into a local BAS system and stored in an SQL database.
 - **Citing PNNL**: This work builds on concepts developed by PNNL for advancing energy-efficient and grid-interactive buildings. Visit the [PNNL VOLTTRON documentation](https://volttron.readthedocs.io/en/main/) for more insights. Also see the `Optimal Start Control for ACs and HPs.pdf` in this repo directory.
@@ -48,7 +102,7 @@ This query retrieves a week's worth of historical data required for proper param
 |---------------------------|--------------------------------------------------------------|-------------------------|
 | **Building Occ Start**      | Defines the building occupancy start time as specified by the BAS schedule. | `H:MM`                |
 | **Earliest Equip Start**    | The earliest time before `buildingOccStart` when equipment can begin operation. | `90 minutes before buildingOccStart` |
-| **EarlyMorning Conditions Check** | A time (default: 4:00 AM) when the current outside air temperature and zone air temperature are assessed to calculate the optimal start time in minutes. | `4:00 AM`             |
+| **Early Morning Conditions Check** | A time (default: 4:00 AM) when the current outside air temperature and zone air temperature are assessed to calculate the optimal start time in minutes. | `4:00 AM`             |
 | **Zone Temp Offset Ignore**  | Threshold value (in degrees) to bypass optimal start if the deviation is less than this value. | `1°F`                 |
 | **Warmup Time Minutes History** | Time (in minutes) required to precondition zones before occupancy, retrieved or calculated from historical data. | `Variable`            |
 
@@ -79,6 +133,8 @@ $ node pnnlModel3.js
 Optimal Start Time in Minutes: 180
 Parameters: alpha3a=7.76, alpha3b=2.44, alpha3d=-628.77
 ```
+
+</details>
 
 ---
 
