@@ -9,44 +9,54 @@ This repository provides a tutorial on implementing the **Model 3 Optimal Start 
 
 ```mermaid
 graph TD
-    subgraph Phase1[Twilight Hours and Wait Phase]
-        CheckTime[Start] --> time0[Is Current Time < Early Morning Conditions Check? Default is 4 AM]
-        time0 -->|Yes| time1[Is Current Time > Building Occ Start?]
-        time0 -->|No| sleepOneMinStart[Sleep 1 Minute]
-        time1 -->|Yes| time2[Is Current Time < Building Occ Start?]
-        time1 -->|No| sleepOneMinStart
-        time2 -->|Yes| holidayWeekendCheck[Is it a Holiday or Weekend?]
-        time2 -->|No| sleepOneMinStart
-        holidayWeekendCheck -->|No| conditionCheck[Run Early Morning Conditions Check]
-        holidayWeekendCheck -->|Yes| sleepOneMinStart
+
+    subgraph CheckSchedule["Check Schedule"]
+        Initialization[Initialization] --> NonWorkingDayCheck["Is it a Non-Working Day?"]
+        NonWorkingDayCheck -->|Yes| WaitNonWorking["Wait 1 Minute"]
+        WaitNonWorking --> NonWorkingDayCheck
     end
 
-    subgraph Phase2[Calculations and Wait Phase]
-        conditionCheck --> sqlForConditionCheck[Fetch Current Outdoor Air and Zone Air Temperatures and Previous Warmup Times in Minutes]
-        sqlForConditionCheck --> modelOptStartData[Input Data Into Model to Compute in Minutes for the Optimal Start Time]
-        modelOptStartData --> computeTimeDeltaUntilBuildOcc[Compute Time Delta in Minutes Until Building Occupied]
-        computeTimeDeltaUntilBuildOcc -->|Yes| timeCheckBeforeOcc[Is Current Time Delta in Minutes Until Building Occ < Modeled Opt Start in Minutes]
-        computeTimeDeltaUntilBuildOcc -->|No| sleepOneMinOptStart[Sleep 1 Minute]
-        sleepOneMinOptStart --> computeTimeDeltaUntilBuildOcc
-        timeCheckBeforeOcc --> equipmentStart[Start the AHU in Recirc Air Mode]
+    subgraph TimeConditionsCheck["Time Conditions Check"]
+        NonWorkingDayCheck -->|No| BeforeEarlyMorningCheck["Before Early Morning?"]
+        BeforeEarlyMorningCheck -->|No| WaitBeforeEarlyMorning["Wait Before Early Morning"]
+        WaitBeforeEarlyMorning --> BeforeEarlyMorningCheck
+
+        BeforeEarlyMorningCheck -->|Yes| PreOccupancyWindowCheck["In Pre-Occupancy Window?"]
+        PreOccupancyWindowCheck -->|No| WaitPreOccupancyWindow["Wait in Pre-Occupancy Window"]
+        WaitPreOccupancyWindow --> PreOccupancyWindowCheck
+
+        PreOccupancyWindowCheck -->|Yes| BeforeOccupancyStartCheck["Before Occupancy Start?"]
+        BeforeOccupancyStartCheck -->|No| WaitBeforeOccupancy["Wait Before Occupancy"]
+        WaitBeforeOccupancy --> BeforeOccupancyStartCheck
     end
 
-    subgraph Phase3[Action Phase]
-        equipmentStart --> recordCacheStart[Store Records of the Optimal Started Time!]
-        recordCacheStart --> hasZoneWarmedUp[Has the Zone Warmed Up to Setpoint?]
-        hasZoneWarmedUp -->|Yes| warmUpComplete[Store Records of the Optimal Stop Time!]
-        warmUpComplete --> terminateThread[Terminate Process or Thread]
-        hasZoneWarmedUp -->|No| hasZoneWarmedUpSleep[Sleep 1 Minute]
-        hasZoneWarmedUpSleep --> hasZoneWarmedUp
-        hasZoneWarmedUp --> isBuildingOccupied[Is the Building Occupied?]
-        isBuildingOccupied -->|Yes| releaseBackToBas[Release Control Back To The BAS]
-        isBuildingOccupied -->|No| hasZoneWarmedUpSleep
-        releaseBackToBas --> End[End]
+    subgraph OptimalStartCalculation["Optimal Start Calculation"]
+        BeforeOccupancyStartCheck -->|Yes| GatherEnvironmentalData["Gather Environmental Data"]
+        GatherEnvironmentalData --> ModelOptimalStart["Model Optimal Start"]
+        ModelOptimalStart --> CalculateTimeToOccupancy["Calculate Time to Occupancy"]
+        CalculateTimeToOccupancy --> OptimalStartTimeReachedCheck["Optimal Start Time Reached?"]
+        OptimalStartTimeReachedCheck -->|No| WaitOptimalStartTime["Wait for Optimal Start Time"]
+        WaitOptimalStartTime --> OptimalStartTimeReachedCheck
     end
 
-    sleepOneMinStart --> CheckTime
-    End --> CheckTime[Start]
+    subgraph AHUStartAndWarmUp["AHU Start and Warm-Up"]
+        OptimalStartTimeReachedCheck -->|Yes| ActivateAHURecirculation["Activate AHU Recirculation Mode"]
+        ActivateAHURecirculation --> LogStartTime["Log Start Time"]
+        LogStartTime --> ZoneAtSetpointCheck["Zone at Setpoint?"]
+        ZoneAtSetpointCheck -->|No| WaitDuringWarmUp["Wait During Warm-Up"]
+        ZoneAtSetpointCheck -->|Yes| LogStopTimeAndEndWarmUp["Log Stop Time & End Warm-Up"]
+        WaitDuringWarmUp --> ZoneAtSetpointCheck
+    end
 
+    subgraph ControlHandoff["Control Handoff"]
+        LogStopTimeAndEndWarmUp --> BuildingOccupiedCheck["Building Occupied?"]
+        BuildingOccupiedCheck -->|Yes| HandoffToBAS["Handoff to BAS"]
+        BuildingOccupiedCheck -->|No| WaitPostOccupancy["Wait Post-Occupancy"]
+        WaitPostOccupancy --> BuildingOccupiedCheck
+        HandoffToBAS --> End[End]
+    end
+
+    End --> Initialization
 
 ```
 </details>
