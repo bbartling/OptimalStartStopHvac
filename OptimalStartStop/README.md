@@ -53,11 +53,11 @@ subgraph AHUStartAndWarmUp["AHU Start and Warm-Up"]
 end
 
 %% Control Handoff Subgraph
-subgraph ControlHandoff["Control Handoff"]
+subgraph ControlHandoff["Release back to the BAS"]
     LogStopTimeAndEndWarmUp --> BuildingOccupiedCheck["Building Occupied?"]
-    BuildingOccupiedCheck -->|Yes| HandoffToBAS["Handoff to BAS"]
-    BuildingOccupiedCheck -->|No| WaitPostOccupancy["Wait Post-Occupancy"]
-    WaitPostOccupancy --> BuildingOccupiedCheck
+    BuildingOccupiedCheck -->|Yes| HandoffToBAS["Release overrides back to BAS"]
+    BuildingOccupiedCheck -->|No| WaitPostOccupancy["Wait For Building Occupancy defined in BAS controller"]
+    WaitPostOccupancy -->|AHU is operating in a recirculation air mode| BuildingOccupiedCheck
     HandoffToBAS --> End[End]
 end
 
@@ -89,7 +89,8 @@ style WaitPostOccupancy fill:#ffc,stroke:#333,stroke-width:2px
 style HandoffToBAS fill:#9cf,stroke:#333,stroke-width:2px
 style End fill:#f9f,stroke:#333,stroke-width:2px
 
-```
+%% Additional Notes for Context
+Note["Note: In the initial start state of the algorithm, occupancy should NOT be derived directly from a BAS schedule. Instead, use an IoT calendar widget or hard-coded actual building occupancy hours. The BAS schedule should only be referenced when releasing overrides back to the BAS in an assumed occupied state, as this is the only point where verifying the BAS schedule is necessary. This is because BAS schedules can be misconfigured or include unnecessary equipment runtime scheduling."]
 </details>
 
 
@@ -273,4 +274,6 @@ Parameters: alpha3a=7.76, alpha3b=2.44, alpha3d=-628.77
 
 ### Notes
 
-This algorithm should work for both heat pump zones and AHU systems. Best practices should be applied regarding the zone temperature input to the algorithm, whether it uses an average of all zone air temperatures or the worst-case scenario from a VAV box in the system (e.g., zones with two exterior walls, etc.).
+* This algorithm should work for both heat pump zones and AHU systems. Best practices should be applied regarding the zone temperature input to the algorithm, whether it uses an average of all zone air temperatures or the worst-case scenario from a VAV box in the system (e.g., zones with two exterior walls, etc.).
+
+* In the initial start state of the algorithm, occupancy should NOT be derived directly from a BAS schedule. Instead, use an IoT calendar widget or hard-coded actual building occupancy hours. The BAS schedule should only be referenced when releasing overrides back to the BAS in an assumed occupied state, as this is the only point where verifying the BAS schedule is necessary. This is because BAS schedules can be misconfigured or include unnecessary equipment runtime scheduling.

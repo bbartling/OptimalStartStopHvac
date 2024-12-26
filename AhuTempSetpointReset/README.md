@@ -166,3 +166,7 @@ The algorithm adjusts the SAT setpoint dynamically based on the following rules:
 | **Outside Air Temperature**              | `outsideAirTemp`        | `outside`, `air`, `temp`, `sensor`             |
 
 </details>
+
+### Notes
+
+This algorithm is designed for occupied buildings and should be carefully tuned, particularly the ignore variable (`I`), to ensure occupant comfort is maintained. It is also recommended to follow up with an occupant comfort survey to confirm that zones do not feel too hot, cold, muggy, dry, or experience any other occupant comfort issues.

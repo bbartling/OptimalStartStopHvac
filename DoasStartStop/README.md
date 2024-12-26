@@ -44,7 +44,7 @@ graph TD
    style LogActivated fill:#cfc,stroke:#333,stroke-width:2px
 
    %% Additional Notes for Context
-   Note["Additional Notes: Occupancy should NOT be derived from a BAS schedule. Use IoT calendar widget or hard coded actual building occupancy hours."]
+   Note["Note: In the initial start state of the algorithm, occupancy should NOT be derived directly from a BAS schedule. Instead, use an IoT calendar widget or hard-coded actual building occupancy hours. The BAS schedule should only be referenced when releasing overrides back to the BAS in an assumed occupied state, as this is the only point where verifying the BAS schedule is necessary. This is because BAS schedules can be misconfigured or include unnecessary equipment runtime scheduling."]
    VentilationPurpose["The DOAS is activated solely for ventilation purposes, ensuring fresh air supply when the building is occupied. Temperature control is handled separately."]
 
 ```
@@ -181,5 +181,6 @@ The algorithm requires proper Haystack markers and tags for managing the DOAS un
 
 
 ### Notes
-This algorithm is ideal for scenarios requiring fresh air ventilation in occupied buildings, such as office spaces, schools, and retail environments. It reduces unnecessary runtime during unoccupied periods, ensuring energy efficiency while maintaining indoor air quality. The DOAS unit's operation is strictly for ventilation purposes, not for heating or cooling.
+* This algorithm is ideal for scenarios requiring fresh air ventilation in occupied buildings that use Dedicated Outside Air Systems (DOAS), which are common in heat pump or VRF-based HVAC systems, such as office spaces, schools, and retail environments. It minimizes unnecessary runtime during unoccupied periods, ensuring energy efficiency while maintaining indoor air quality. The operation of the DOAS unit is strictly limited to ventilation purposes, not heating or cooling.
 
+* In the initial start state of the algorithm, occupancy should NOT be derived directly from a BAS schedule. Instead, use an IoT calendar widget or hard-coded actual building occupancy hours. The BAS schedule should only be referenced when releasing overrides back to the BAS in an assumed occupied state, as this is the only point where verifying the BAS schedule is necessary. This is because BAS schedules can be misconfigured or include unnecessary equipment runtime scheduling.

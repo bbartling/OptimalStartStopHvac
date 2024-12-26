@@ -54,7 +54,7 @@ style MonitorAndWait fill:#ffc,stroke:#333,stroke-width:2px
 
 
 %% Additional Notes for Context
-Note["Additional Notes: Occupancy should NOT be derived from a BAS schedule. Use IoT calendar widget or hard coded actual building occupancy hours."]
+Note["Note: In the initial start state of the algorithm, occupancy should NOT be derived directly from a BAS schedule. Instead, use an IoT calendar widget or hard-coded actual building occupancy hours. The BAS schedule should only be referenced when releasing overrides back to the BAS in an assumed occupied state, as this is the only point where verifying the BAS schedule is necessary. This is because BAS schedules can be misconfigured or include unnecessary equipment runtime scheduling."]
 FutureEnhancement["Future enhancement to include monitoring zone temperatures by ASO. ASHRAE 90.1 Energy code requires zone setpoints to be set back to 90°F and 55°F."]
 ```
 
@@ -170,4 +170,6 @@ Damper Override: Dampers Closed for Full Recirculation Mode
 
 ### Notes
 
-This algorithm is ideal for ensuring energy-efficient operation of AHUs during unoccupied hours, aligning with best practices for reducing HVAC runtime. Future enhancements could include incorporating zone temperature monitoring for further optimization. Quite often in BAS, unoccupied zone temperature setpoints are not reset adequately. Energy code requirements, such as ASHRAE 90.1, specify that zone temperature setpoints for unoccupied buildings should be set to 55°F for heating and 90°F for cooling if the building is operating in compliance with energy codes.
+* This algorithm is ideal for ensuring energy-efficient operation of AHUs during unoccupied hours, aligning with best practices for reducing HVAC runtime. Future enhancements could include incorporating zone temperature monitoring for further optimization. Quite often in BAS, unoccupied zone temperature setpoints are not reset adequately. Energy code requirements, such as ASHRAE 90.1, specify that zone temperature setpoints for unoccupied buildings should be set to 55°F for heating and 90°F for cooling if the building is operating in compliance with energy codes.
+
+* In the initial start state of the algorithm, occupancy should NOT be derived directly from a BAS schedule. Instead, use an IoT calendar widget or hard-coded actual building occupancy hours. The BAS schedule should only be referenced when releasing overrides back to the BAS in an assumed occupied state, as this is the only point where verifying the BAS schedule is necessary. This is because BAS schedules can be misconfigured or include unnecessary equipment runtime scheduling.
