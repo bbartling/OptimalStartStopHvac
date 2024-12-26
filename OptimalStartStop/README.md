@@ -91,6 +91,7 @@ style End fill:#f9f,stroke:#333,stroke-width:2px
 
 %% Additional Notes for Context
 Note["Note: In the initial start state of the algorithm, occupancy should NOT be derived directly from a BAS schedule. Instead, use an IoT calendar widget or hard-coded actual building occupancy hours. The BAS schedule should only be referenced when releasing overrides back to the BAS in an assumed occupied state, as this is the only point where verifying the BAS schedule is necessary. This is because BAS schedules can be misconfigured or include unnecessary equipment runtime scheduling."]
+```
 </details>
 
 

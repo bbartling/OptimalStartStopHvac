@@ -128,8 +128,6 @@ Current SAT Setpoint: 58.80°F (decreased)
 
 ## Trim & Respond Logic Details
 
-<details>
-  <summary>Algorithm Details</summary>
 
 ### Aim
 Prevent excessive chiller energy consumption while maintaining proper dehumidification in humid climates.
@@ -165,7 +163,6 @@ The algorithm adjusts the SAT setpoint dynamically based on the following rules:
 | **Space Air Temperature**                | `spaceAirTemp`          | `space`, `air`, `temp`, `sensor`               |
 | **Outside Air Temperature**              | `outsideAirTemp`        | `outside`, `air`, `temp`, `sensor`             |
 
-</details>
 
 ### Notes
 

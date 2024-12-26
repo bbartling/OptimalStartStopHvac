@@ -123,9 +123,6 @@ Current Static Pressure Setpoint: 0.50” WC (decreased)
 
 ## Trim & Respond Logic Details
 
-<details>
-  <summary>Algorithm Details</summary>
-
 ### Aim
 Reduce fan energy consumption by dynamically adjusting duct static pressure setpoints.
 
@@ -153,9 +150,6 @@ Adjustments occur incrementally to maintain system stability, with limits enforc
 | **AHU Leaving Air Duct Static Pressure** | `ahuDuctStaticPress`    | `ahu`, `duct`, `static`, `pressure`, `sensor`  |
 | **AHU Leaving Air Duct Static Pressure Setpoint** | `ahuDuctStaticPressSp` | `ahu`, `duct`, `static`, `pressure`, `sp`      |
 | **VAV Box Air Damper Command**           | `vavAirDamperCmd`       | `vav`, `air`, `damper`, `cmd`                  |
-
-
-</details>
 
 
 ### Notes
