@@ -84,16 +84,6 @@ Moderate
 
 ---
 
-### Data Model in Haystack
-
-| **Point Name**                        | **navName**             | **Marker Tags in Haystack**               |
-|---------------------------------------|-------------------------|--------------------------------------------|
-| **Building Occupancy Schedule**       | `buildingOccSchedule`   | `schedule`, `building`, `occ`             |
-| **DOAS Occupancy Command**            | `doasOccCmd`            | `doas`, `occ`, `cmd`                      |
-| **DOAS Status**                       | `doasStatus`            | `doas`, `status`                          |
-
----
-
 ### Adjustable Algorithm Variables
 - **Building Start Time**: Defines when occupancy begins.
 - **Building End Time**: Defines when occupancy ends.
@@ -105,25 +95,6 @@ Moderate
 
 ---
 
-The new version with the Mermaid diagram and `<details>` features should already include most of the important details from the old version. However, upon reviewing, here are a few missing or underemphasized elements that should be included to ensure completeness and consistency:
-
-### Missing or Underemphasized Details:
-1. **Specific Notes on Applicability**:
-   - The old version mentions that the algorithm is ideal for standalone DOAS units in systems using heat pumps or VRF technologies. This can be re-emphasized in the new version.
-
-2. **Dynamic Scheduling Options**:
-   - The old version specifies three sources of schedules: BAS, IoT calendar widget, and hardcoded values. While the new version briefly mentions them, it could elaborate on their usage in a `<details>` section.
-
-3. **Example Outputs**:
-   - The old version includes detailed Python and JavaScript script outputs as examples. These should be added to the new version under `<details>` for clarity.
-
-4. **Haystack Data Model**:
-   - The Haystack markers and tags in the old version are critical for implementation. Ensure these are fully captured in the new version under a `<details>` section.
-
-5. **Control Logic Details**:
-   - While the new version has a summary of the logic, the detailed process outlined in the old version (steps to compare time, override commands, etc.) should also be fully captured in the `<details>` section.
-
----
 
 ### Python and JavaScript Implementation
 

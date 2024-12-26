@@ -170,4 +170,4 @@ Damper Override: Dampers Closed for Full Recirculation Mode
 
 ### Notes
 
-This algorithm is ideal for ensuring energy-efficient operation of AHUs during unoccupied hours, aligning with best practices for reducing HVAC runtime. Future enhancements could include incorporating zone temperature monitoring for further optimization.
+This algorithm is ideal for ensuring energy-efficient operation of AHUs during unoccupied hours, aligning with best practices for reducing HVAC runtime. Future enhancements could include incorporating zone temperature monitoring for further optimization. Quite often in BAS, unoccupied zone temperature setpoints are not reset adequately. Energy code requirements, such as ASHRAE 90.1, specify that zone temperature setpoints for unoccupied buildings should be set to 55°F for heating and 90°F for cooling if the building is operating in compliance with energy codes.

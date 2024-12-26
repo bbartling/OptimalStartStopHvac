@@ -187,21 +187,6 @@ Automatically calculates the ideal equipment start time each day to ensure appro
 
 ---
 
-### Data Model in Haystack
-
-**Note:** Zone air temperatures can be averaged or use the worst-case scenario VAV box in the system (e.g., zones with two exterior walls, etc.).
-
-| **Point Name**                       | **navName**   | **Marker Tags in Haystack**           |
-|--------------------------------------|---------------|----------------------------------------|
-| **Zone Temperature**                 | `ZnTemp`      | `zone`, `air`, `temp`, `sensor`       |
-| **Zone Temperature Setpoint Effective** | `ZnTempSp`   | `zone`, `air`, `temp`, `effective`, `sp` |
-| **Zone Temp Occupied Cooling Setpoint** | `OccCoolSp` | `zone`, `air`, `temp`, `occ`, `cooling`, `sp` |
-| **Zone Temp Occupied Heating Setpoint** | `OccHeatSp` | `zone`, `air`, `temp`, `occ`, `heating`, `sp` |
-| **Zone Temp Effective Cooling Setpoint** | `EffClgSp`  | `zone`, `air`, `temp`, `occ`, `cooling`, `sp` |
-| **Zone Temp Effective Heating Setpoint** | `EffHtgSp`  | `zone`, `air`, `temp`, `occ`, `heating`, `sp` |
-
----
-
 ### AHU Controller
 The AHU will receive zone air temperature data from the BAS supervisory controller, enabling it to perform night heating or cooling cycles as part of the unoccupied building sequencing.
 
@@ -232,9 +217,13 @@ If no historical data is available, the equipment starts at `earliestEquipStart`
 </details>
 
 
-## Simulations of modeling optimal start minutes
+---
 
-### Python Implementation
+### Python and JavaScript Implementation
+
+<details>
+  <summary>Example Python Implementation</summary>
+
 ```bash
 $ python pnnl_model3_method.py
 ```
@@ -245,7 +234,10 @@ Optimal Start Time in Minutes: 180.00
 Parameters: alpha_3a=7.76, alpha_3b=2.44, alpha_3d=-628.77
 ```
 
-### JavaScript Implementation
+</details>
+
+<details>
+  <summary>Example JavaScript Implementation</summary>
 ```bash
 $ node pnnlModel3.js 
 ```
@@ -256,6 +248,29 @@ Optimal Start Time in Minutes: 180
 Parameters: alpha3a=7.76, alpha3b=2.44, alpha3d=-628.77
 ```
 
-## TODO 
+</details>
 
-Make unit tests for JavaScript in https://vitest.dev/
+---
+
+### Haystack Data Model
+
+<details>
+  <summary>Haystack Marker Tags</summary>
+
+
+| **Point Name**                       | **navName**   | **Marker Tags in Haystack**           |
+|--------------------------------------|---------------|----------------------------------------|
+| **Zone Temperature**                 | `ZnTemp`      | `zone`, `air`, `temp`, `sensor`       |
+| **Zone Temperature Setpoint Effective** | `ZnTempSp`   | `zone`, `air`, `temp`, `effective`, `sp` |
+| **Zone Temp Occupied Cooling Setpoint** | `OccCoolSp` | `zone`, `air`, `temp`, `occ`, `cooling`, `sp` |
+| **Zone Temp Occupied Heating Setpoint** | `OccHeatSp` | `zone`, `air`, `temp`, `occ`, `heating`, `sp` |
+| **Zone Temp Effective Cooling Setpoint** | `EffClgSp`  | `zone`, `air`, `temp`, `occ`, `cooling`, `sp` |
+| **Zone Temp Effective Heating Setpoint** | `EffHtgSp`  | `zone`, `air`, `temp`, `occ`, `heating`, `sp` |
+
+</details>
+
+---
+
+### Notes
+
+This algorithm should work for both heat pump zones and AHU systems. Best practices should be applied regarding the zone temperature input to the algorithm, whether it uses an average of all zone air temperatures or the worst-case scenario from a VAV box in the system (e.g., zones with two exterior walls, etc.).
