@@ -21,6 +21,17 @@ This repository explores versatile algorithms for Automated Supervisory Optimiza
    - If the AHU wakes up, ensure it operates in full recirculation air mode:
      - If not, override AHU air dampers to full recirculation air mode.
 
+- [ ] **DOAS Unit Temperature Reset**
+   - Override BAS to design based temperature setpoints for DOAS units.
+   - If the BAS has occupancy integration of zones (IE., zone level OCC sensors), revising ventilation control for demand-based ventilation based on real-time occupancy could be explored. This might involve assessing the availability of zone-level air flow volume measurements and DOAS supply fan controls, as well as evaluating the potential for integrating data from Air Flow Measurement Station (AFMS) to optimize ventilation rates based on actual occupancy levels.
+   - If Dedicated Outdoor Air Systems (DOAS) units are equipped with a by-pass air damper across the heat exchangers, ensure that the heat exchangers are bypassed during economizer free cooling conditions to minimize energy consumption by reducing fan pressure drops resulting from overcoming heat exchanger resistance. Additionally, conduct efficiency calculations to determine the optimal conditions under which the heat exchangers should be utilized. Default energy recovery unit (ERV) heating efficiency could be 70 to 90% in a heating application and much lower in a cooling application around 45 to 60%. Use engineering knowledge to best know when to recover heat else bypass the wheel or ERV.
+
+- [ ] **Geothermal Central Plant Optimization**
+   - If the geothermal system has additional boiler or cooling capacity with a cooling tower or chiller, utilize Automated System Optimization (ASO) to ensure that extra energy-consuming capacity equipment only operates when conditions exist that the original HVAC design intended for auxiliary capacity equipment to run, specifically when the geothermal loop is not meeting the capacity of heating or cooling loads.
+
+- [ ] **Boiler Plant Leaving Water Setpoint Optimization**
+   - Based on GL36 for a "request" based T&R on central plant setpoints Vs outside air temperature central plant resets.
+
 - [ ] **Cold or Warm Weather AHU Overventilation Protection**
    - ASO monitors the calculated percentage of outside air:
      - If AHU is overventilating, ASO overrides the MIN OA ventilation setpoint.
@@ -31,11 +42,10 @@ This repository explores versatile algorithms for Automated Supervisory Optimiza
    - Requires an engineer's judgment to verify airflow values and sensor calibration.
    - Recommended: Conduct spot measurements of building CO₂ levels to ensure adequate ventilation and proper building pressurization.
 
-- [ ] **Boiler Plant Optimization**
-   - Based on GL36 for a request based T&R on central plant setpoints Vs outside air temperature central plant resets.
-
-- [ ] **Chiller Plant Optimization**
-   - Based on GL36 for a request based T&R on central plant setpoints Vs outside air temperature central plant resets.
+- [ ] **Chiller Plant Leaving Water Setpoint Optimization**
+   - Based on GL36 for a "request" based T&R on central plant setpoints Vs outside air temperature central plant resets.
+   - Chiller Plant Condensor Water Setpoint Optimization
+   - Chiller Staging Optimization
 
 - [ ] **Brainstorm further ideas or improvements.** 🤔
    * Start a git discussion or git issue!
