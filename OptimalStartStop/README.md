@@ -57,7 +57,7 @@ subgraph ControlHandoff["Release back to the BAS"]
     LogStopTimeAndEndWarmUp --> BuildingOccupiedCheck["Building Occupied?"]
     BuildingOccupiedCheck -->|Yes| HandoffToBAS["Release overrides back to BAS"]
     BuildingOccupiedCheck -->|No| WaitPostOccupancy["Wait For Building Occupancy defined in BAS controller"]
-    WaitPostOccupancy -->|AHU is operating in a recirculation air mode| BuildingOccupiedCheck
+    WaitPostOccupancy -->|AHU is operating in a recirculation air mode warming up the zones| BuildingOccupiedCheck
     HandoffToBAS --> End[End]
 end
 
