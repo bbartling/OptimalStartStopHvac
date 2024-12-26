@@ -10,53 +10,84 @@ This repository provides a tutorial on implementing the **Model 3 Optimal Start 
 ```mermaid
 graph TD
 
-    subgraph CheckSchedule["Check Schedule"]
-        Initialization[Initialization] --> NonWorkingDayCheck["Is it a Non-Working Day?"]
-        NonWorkingDayCheck -->|Yes| WaitNonWorking["Wait 1 Minute"]
-        WaitNonWorking --> NonWorkingDayCheck
-    end
+%% Check Schedule Subgraph
+subgraph CheckSchedule["Check Schedule"]
+    Initialization[Initialization] --> NonWorkingDayCheck["Is it a Non-Occupied Building Day?"]
+    NonWorkingDayCheck -->|Yes| WaitNonWorking["Wait 1 Minute"]
+    WaitNonWorking --> NonWorkingDayCheck
+end
 
-    subgraph TimeConditionsCheck["Time Conditions Check"]
-        NonWorkingDayCheck -->|No| BeforeEarlyMorningCheck["Before Early Morning?"]
-        BeforeEarlyMorningCheck -->|No| WaitBeforeEarlyMorning["Wait Before Early Morning"]
-        WaitBeforeEarlyMorning --> BeforeEarlyMorningCheck
+%% Time Conditions Check Subgraph
+subgraph TimeConditionsCheck["Time Conditions Check"]
+    NonWorkingDayCheck -->|No| BeforeEarlyMorningCheck["Before Early Morning?"]
+    BeforeEarlyMorningCheck -->|No| WaitBeforeEarlyMorning["Wait Before Early Morning"]
+    WaitBeforeEarlyMorning --> BeforeEarlyMorningCheck
 
-        BeforeEarlyMorningCheck -->|Yes| PreOccupancyWindowCheck["In Pre-Occupancy Window?"]
-        PreOccupancyWindowCheck -->|No| WaitPreOccupancyWindow["Wait in Pre-Occupancy Window"]
-        WaitPreOccupancyWindow --> PreOccupancyWindowCheck
+    BeforeEarlyMorningCheck -->|Yes| PreOccupancyWindowCheck["In Pre-Occupancy Window?"]
+    PreOccupancyWindowCheck -->|No| WaitPreOccupancyWindow["Wait in Pre-Occupancy Window"]
+    WaitPreOccupancyWindow --> PreOccupancyWindowCheck
 
-        PreOccupancyWindowCheck -->|Yes| BeforeOccupancyStartCheck["Before Occupancy Start?"]
-        BeforeOccupancyStartCheck -->|No| WaitBeforeOccupancy["Wait Before Occupancy"]
-        WaitBeforeOccupancy --> BeforeOccupancyStartCheck
-    end
+    PreOccupancyWindowCheck -->|Yes| BeforeOccupancyStartCheck["Before Occupancy Start?"]
+    BeforeOccupancyStartCheck -->|No| WaitBeforeOccupancy["Wait Before Occupancy"]
+    WaitBeforeOccupancy --> BeforeOccupancyStartCheck
+end
 
-    subgraph OptimalStartCalculation["Optimal Start Calculation"]
-        BeforeOccupancyStartCheck -->|Yes| GatherEnvironmentalData["Gather Environmental Data"]
-        GatherEnvironmentalData --> ModelOptimalStart["Model Optimal Start"]
-        ModelOptimalStart --> CalculateTimeToOccupancy["Calculate Time to Occupancy"]
-        CalculateTimeToOccupancy --> OptimalStartTimeReachedCheck["Optimal Start Time Reached?"]
-        OptimalStartTimeReachedCheck -->|No| WaitOptimalStartTime["Wait for Optimal Start Time"]
-        WaitOptimalStartTime --> OptimalStartTimeReachedCheck
-    end
+%% Optimal Start Calculation Subgraph
+subgraph OptimalStartCalculation["Optimal Start Calculation"]
+    BeforeOccupancyStartCheck -->|Yes| GatherEnvironmentalData["Gather Environmental Data"]
+    GatherEnvironmentalData --> ModelOptimalStart["Model Optimal Start"]
+    ModelOptimalStart --> CalculateTimeToOccupancy["Calculate Time to Occupancy"]
+    CalculateTimeToOccupancy --> OptimalStartTimeReachedCheck["Optimal Start Time Reached?"]
+    OptimalStartTimeReachedCheck -->|No| WaitOptimalStartTime["Wait for Optimal Start Time"]
+    WaitOptimalStartTime --> OptimalStartTimeReachedCheck
+end
 
-    subgraph AHUStartAndWarmUp["AHU Start and Warm-Up"]
-        OptimalStartTimeReachedCheck -->|Yes| ActivateAHURecirculation["Activate AHU Recirculation Mode"]
-        ActivateAHURecirculation --> LogStartTime["Log Start Time"]
-        LogStartTime --> ZoneAtSetpointCheck["Zone at Setpoint?"]
-        ZoneAtSetpointCheck -->|No| WaitDuringWarmUp["Wait During Warm-Up"]
-        ZoneAtSetpointCheck -->|Yes| LogStopTimeAndEndWarmUp["Log Stop Time & End Warm-Up"]
-        WaitDuringWarmUp --> ZoneAtSetpointCheck
-    end
+%% AHU Start and Warm-Up Subgraph
+subgraph AHUStartAndWarmUp["AHU Start and Warm-Up"]
+    OptimalStartTimeReachedCheck -->|Yes| ActivateAHURecirculation["Activate AHU Recirculation Mode"]
+    ActivateAHURecirculation --> LogStartTime["Log Start Time"]
+    LogStartTime --> ZoneAtSetpointCheck["Zone at Setpoint?"]
+    ZoneAtSetpointCheck -->|No| WaitDuringWarmUp["Wait During Warm-Up"]
+    ZoneAtSetpointCheck -->|Yes| LogStopTimeAndEndWarmUp["Log Stop Time & End Warm-Up"]
+    WaitDuringWarmUp --> ZoneAtSetpointCheck
+end
 
-    subgraph ControlHandoff["Control Handoff"]
-        LogStopTimeAndEndWarmUp --> BuildingOccupiedCheck["Building Occupied?"]
-        BuildingOccupiedCheck -->|Yes| HandoffToBAS["Handoff to BAS"]
-        BuildingOccupiedCheck -->|No| WaitPostOccupancy["Wait Post-Occupancy"]
-        WaitPostOccupancy --> BuildingOccupiedCheck
-        HandoffToBAS --> End[End]
-    end
+%% Control Handoff Subgraph
+subgraph ControlHandoff["Control Handoff"]
+    LogStopTimeAndEndWarmUp --> BuildingOccupiedCheck["Building Occupied?"]
+    BuildingOccupiedCheck -->|Yes| HandoffToBAS["Handoff to BAS"]
+    BuildingOccupiedCheck -->|No| WaitPostOccupancy["Wait Post-Occupancy"]
+    WaitPostOccupancy --> BuildingOccupiedCheck
+    HandoffToBAS --> End[End]
+end
 
-    End --> Initialization
+%% Loopback
+End --> Initialization
+
+%% Styles for Highlighting
+style Initialization fill:#f9f,stroke:#333,stroke-width:2px
+style NonWorkingDayCheck fill:#ccf,stroke:#333,stroke-width:2px
+style WaitNonWorking fill:#ffc,stroke:#333,stroke-width:2px
+style BeforeEarlyMorningCheck fill:#fcc,stroke:#333,stroke-width:2px
+style WaitBeforeEarlyMorning fill:#ffc,stroke:#333,stroke-width:2px
+style PreOccupancyWindowCheck fill:#ccf,stroke:#333,stroke-width:2px
+style WaitPreOccupancyWindow fill:#ffc,stroke:#333,stroke-width:2px
+style BeforeOccupancyStartCheck fill:#fcc,stroke:#333,stroke-width:2px
+style WaitBeforeOccupancy fill:#ffc,stroke:#333,stroke-width:2px
+style GatherEnvironmentalData fill:#9cf,stroke:#333,stroke-width:2px
+style ModelOptimalStart fill:#ccf,stroke:#333,stroke-width:2px
+style CalculateTimeToOccupancy fill:#ffc,stroke:#333,stroke-width:2px
+style OptimalStartTimeReachedCheck fill:#fcc,stroke:#333,stroke-width:2px
+style WaitOptimalStartTime fill:#ffc,stroke:#333,stroke-width:2px
+style ActivateAHURecirculation fill:#9cf,stroke:#333,stroke-width:2px
+style LogStartTime fill:#ccf,stroke:#333,stroke-width:2px
+style ZoneAtSetpointCheck fill:#ffc,stroke:#333,stroke-width:2px
+style WaitDuringWarmUp fill:#ffc,stroke:#333,stroke-width:2px
+style LogStopTimeAndEndWarmUp fill:#9cf,stroke:#333,stroke-width:2px
+style BuildingOccupiedCheck fill:#ccf,stroke:#333,stroke-width:2px
+style WaitPostOccupancy fill:#ffc,stroke:#333,stroke-width:2px
+style HandoffToBAS fill:#9cf,stroke:#333,stroke-width:2px
+style End fill:#f9f,stroke:#333,stroke-width:2px
 
 ```
 </details>

@@ -1,97 +1,64 @@
-## Night Heat or Cycling in Full Recirculation Air Mode Algorithm
+## AHU Night Recirculation Mode Control Algorithm
 
-This repository provides a tutorial on implementing the **Night Heat or Cycling in Full Recirculation Air Mode Algorithm** for HVAC systems. The algorithm ensures energy efficiency by monitoring AHU (Air Handling Unit) operations during night-time heating or cooling calls and overriding dampers to operate in full recirculation air mode.
-
-### Notes
-
-This algorithm can be further enhanced (A future TODO?) by monitoring zone air temperature values to optimize AHU operation. If there are no active heating or cooling calls, the AHU can be overridden to remain OFF, running only when an actual unoccupied heating or cooling demand is detected. Energy code standards recommend unoccupied cooling setpoints of 90°F and unoccupied heating setpoints of 55°F, though these are often not implemented in Building Automation Systems (BAS). Integrating these setpoints can help ensure compliance while reducing energy consumption. ***For now please exclude this thought!***
+This repository provides a tutorial on implementing the **Air Handling Unit (AHU) Night Recirculation Mode Control Algorithm** for HVAC systems. The algorithm ensures energy efficiency by overriding AHU dampers to operate in full recirculation air mode during unoccupied hours when the AHU is active.
 
 ---
 
 ### Key Insights
-- **Energy Efficiency**: Ensures AHU dampers remain closed during unoccupied hours, preventing unnecessary outdoor air intake and conserving energy when the building is not actively in use. For school districts, this should align with the district's defined schedule, including start and end times for regular school hours. It should exclude minimally occupied after-hours periods, such as school activities or custodial overnight cleaning. Events with large gatherings, such as sports games in gymnasiums or theater performances, should follow full occupancy ventilation requirements to maintain adequate air exchange. Conversely, activities with minimal occupancy, like sports practices, may operate with reduced ventilation, as design ventilation rates typically account for the maximum occupancy in terms of CFM/person. Always communicate to client conditions of when areas would be at designed ventilation or maximum. ASHRAE 62.1's latest revision supports `occupied-standby` which could also be used to verify if the type of zone can go below designed ventilation.
-- **Optimized Control**: Overrides AHU dampers to full recirculation mode during night-time heating or cooling if the AHU cycles during the night.
-- **Flexible Scheduling**: Integrates with BAS schedules via BACnet or similar protocols, a calendar widget in IoT, or hardcoded start/stop times and days of operation.
+- **Energy Efficiency**: Ensures AHU dampers remain closed during unoccupied hours to prevent unnecessary outdoor air intake and conserve energy.
+- **Optimized Control**: Overrides AHU dampers to full recirculation mode during night-time heating or cooling cycles.
+- **Flexible Scheduling**: Integrates with Building Automation Systems (BAS), IoT calendar widgets, or hardcoded schedules.
 
 ---
 
-### Overview of the Algorithm
-The algorithm monitors AHU operations and building schedules to determine the need for overrides:
-- **AHU Active During Unoccupied Hours**: If the AHU wakes up on a heating or cooling call outside the occupied schedule, override the air dampers to full recirculation mode.
-- **Occupied Hours**: Dampers are controlled by the building automation system (BAS) and operate normally. The algorithm or IoT operating ASO shall release any overrides back to the BAS.
+## Activity Diagram of AHU Night Recirculation Mode Control Process
 
-#### Requirements:
-1. **Schedule Input**: The building occupancy schedule can come from:
-   - **Building Automation System (BAS)**: Utilizing BACnet or similar communication protocols.
-   - **IoT Calendar Widget**: Allows dynamic scheduling through a user interface or **Hardcoded Values** for the start and stop times, as well as occupied days, are defined directly in the configuration.
+<details>
+  <summary>AHU Control Logic</summary>
 
-2. **AHU System**: The air handling unit must support damper control for recirculation mode.
+```mermaid
+graph TD
 
----
+%% Initialization Process
+subgraph Initialization["Initialization"]
+    Start[Start] --> CheckSchedule["Check Building Occupancy Schedule"]
+end
 
-### Adjustable Algorithm Variables
+%% Occupancy Check Process
+subgraph OccupancyCheck["Occupancy Check"]
+    CheckSchedule -->|Occupied| NormalControl["Allow BAS to Control AHU"]
+    NormalControl --> WaitForUnoccupied["Wait for Building to Become Unoccupied"]
+    WaitForUnoccupied --> CheckSchedule
 
-| **Variable**                            | **Description**                                              | **Default Value**      |
-|-----------------------------------------|--------------------------------------------------------------|------------------------|
-| **Building Start Time**                 | The time when the building becomes occupied.                 | `7:00 AM`             |
-| **Building End Time**                   | The time when the building becomes unoccupied.               | `6:00 PM`             |
-| **Days of Week**                        | Days when the building is occupied.                          | `Monday-Friday`       |
-| **Economizer High Limit Temperature**   | The maximum outdoor air temperature for enabling free cooling.| `60°F`                |
-| **Economizer Low Limit Temperature**    | The minimum outdoor air temperature for enabling free cooling.| `50°F`                |
+    CheckSchedule -->|Unoccupied| OutdoorAirAndMotorCheck["Check OAT and AHU Motor Status"]
 
----
+    %% Combined Outdoor Air Temperature and AHU Motor Status Check
+    OutdoorAirAndMotorCheck -->|Ideal Economizer Ranges + Motor Running| EnableFreeCooling["Enable Free Cooling"]
+    OutdoorAirAndMotorCheck -->|Outside of Economizer Ranges + Motor Running| OverrideDampers["Override Dampers to Closed Position"]
 
-### How the Algorithm Works
-1. **Check Current Time**:
-   - Compare the current time against the building schedule sourced from:
-     - BAS via BACnet or similar protocol.
-     - IoT calendar widget. (preferred)
-     - Hardcoded values.
+    EnableFreeCooling --> MonitorAndWait["Monitor AHU Status and Building Occupancy"]
+    OverrideDampers --> MonitorAndWait["Monitor AHU Status and Building Occupancy"]
 
-2. **Monitor AHU Activity**:
-   - If the AHU wakes up during unoccupied hours due to a heating or cooling call, override the air dampers to **closed** for full recirculation mode.
+    MonitorAndWait -->|Motor Stopped + Unoccupied Building| OutdoorAirAndMotorCheck
+    MonitorAndWait -->|Building Becomes Occupied| CheckSchedule
+end
 
-3. **Occupied Schedule**:
-   - During occupied hours, release control of the dampers back to the BAS for normal operation.
+%% Styles for Highlighting
+style CheckSchedule fill:#f9f,stroke:#333,stroke-width:2px
+style NormalControl fill:#cfc,stroke:#333,stroke-width:2px
+style WaitForUnoccupied fill:#ffc,stroke:#333,stroke-width:2px
+style OutdoorAirAndMotorCheck fill:#ccf,stroke:#333,stroke-width:2px
+style EnableFreeCooling fill:#9cf,stroke:#333,stroke-width:2px
+style OverrideDampers fill:#fcc,stroke:#333,stroke-width:2px
+style MonitorAndWait fill:#ffc,stroke:#333,stroke-width:2px
 
----
 
-## Python Implementation
-
-#### Running the Script
-```bash
-$ python night_recirc_mode.py
+%% Additional Notes for Context
+Note["Additional Notes: Occupancy should NOT be derived from a BAS schedule. Use IoT calendar widget or hard coded actual building occupancy hours."]
+FutureEnhancement["Future enhancement to include monitoring zone temperatures by ASO. ASHRAE 90.1 Energy code requires zone setpoints to be set back to 90°F and 55°F."]
 ```
 
-#### Example Py Output
-```
-Starting Night Recirculation Mode Control Simulation...
-Wednesday 18:26: Building is unoccupied. AHU is inactive. No action required.
-Friday 21:52: Building is unoccupied. AHU is inactive. No action required.
-Sunday 13:01: Building is unoccupied. AHU is inactive. No action required.
-Wednesday 03:28: Building is unoccupied. AHU is active. Free cooling disabled (OAT: 43.25°F). Dampers_Closed
-Monday 10:12: Building is occupied. Release_Control
-Thursday 02:43: Building is unoccupied. AHU is inactive. No action required.
-Friday 13:08: Building is occupied. Release_Control
-```
-
----
-
-## JavaScript Implementation
-
-#### Running the Script
-```bash
-$ node nightRecircMode.js
-```
-
-#### Example Js Output
-```
-Current Time: 3:00 AM
-Building Status: Unoccupied
-AHU Status: Active
-Damper Override: Dampers Closed for Full Recirculation Mode
-...
-```
+</details>
 
 ---
 
@@ -116,20 +83,76 @@ Moderate
 ---
 
 ### Process
-1. Check the current time and compare it against the building schedule sourced from:
-   - **BAS**: Using BACnet or similar protocols.
-   - **IoT Calendar Widget**: For user-configurable schedules.
-   - **Hardcoded Values**: Directly set start/stop times and occupied days.
-2. If the time is outside the occupied hours and the AHU is active:
-   - Override the dampers to **closed** for full recirculation mode.
-3. During occupied hours:
-   - Release damper control back to the BAS for normal operation.
+1. **Check Current Time**:
+   - Compare the current time against the building schedule sourced from:
+     - BAS using BACnet or similar protocols.
+     - IoT calendar widget (preferred).
+     - Hardcoded values.
+2. **Monitor AHU Activity**:
+   - If the AHU is active during unoccupied hours due to a heating or cooling call, override the air dampers to **closed** for full recirculation mode.
+3. **Occupied Schedule**:
+   - During occupied hours, release damper control back to the BAS for normal operation.
+
+</details>
 
 ---
 
-## Data Model in Haystack
+### Adjustable Algorithm Variables
 
-**Note:** Haystack does not appear to have a `schedule` tag but documentation states to use a `sp` tag for this purposes. See [link](https://project-haystack.org/forum/topic/656) for more info. The `occ` tag or reference to equiment being occupied could potentially be used if it perfectly mirrors the BAS schedule calendar.
+| **Variable**                            | **Description**                                              | **Default Value**      |
+|-----------------------------------------|--------------------------------------------------------------|------------------------|
+| **Building Start Time**                 | The time when the building becomes occupied.                 | `7:00 AM`             |
+| **Building End Time**                   | The time when the building becomes unoccupied.               | `6:00 PM`             |
+| **Days of Week**                        | Days when the building is occupied.                          | `Monday-Friday`       |
+| **Economizer High Limit Temperature**   | The maximum outdoor air temperature for enabling free cooling.| `60°F`                |
+| **Economizer Low Limit Temperature**    | The minimum outdoor air temperature for enabling free cooling.| `50°F`                |
+
+---
+
+### Python and JavaScript Implementation
+
+<details>
+  <summary>Example Python Implementation</summary>
+
+```bash
+$ python night_recirc_mode.py
+```
+
+Example Output:
+```
+Starting Night Recirculation Mode Control Simulation...
+Wednesday 18:26: Building is unoccupied. AHU is inactive. No action required.
+Friday 21:52: Building is unoccupied. AHU is inactive. No action required.
+Wednesday 03:28: Building is unoccupied. AHU is active. Free cooling disabled (OAT: 43.25°F). Dampers_Closed
+Monday 10:12: Building is occupied. Release_Control
+```
+
+</details>
+
+<details>
+  <summary>Example JavaScript Implementation</summary>
+
+```bash
+$ node nightRecircMode.js
+```
+
+Example Output:
+```
+Current Time: 3:00 AM
+Building Status: Unoccupied
+AHU Status: Active
+Damper Override: Dampers Closed for Full Recirculation Mode
+...
+```
+
+</details>
+
+---
+
+### Haystack Data Model
+
+<details>
+  <summary>Haystack Marker Tags</summary>
 
 | **Point Name**                               | **navName**               | **Marker Tags in Haystack**                     |
 |----------------------------------------------|---------------------------|------------------------------------------------|
@@ -141,6 +164,10 @@ Moderate
 | **Economizer High Limit Temperature**        | `economizerHighLimitTemp` | `ahu`, `economizer`, `temp`, `high`, `limit`  |
 | **Economizer Low Limit Temperature**         | `economizerLowLimitTemp`  | `ahu`, `economizer`, `temp`, `low`, `limit`   |
 
-
-
 </details>
+
+---
+
+### Notes
+
+This algorithm is ideal for ensuring energy-efficient operation of AHUs during unoccupied hours, aligning with best practices for reducing HVAC runtime. Future enhancements could include incorporating zone temperature monitoring for further optimization.

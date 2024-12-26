@@ -1,104 +1,55 @@
-## DOAS Unit Start and Stop Algorithm
+## DOAS Unit Control Algorithm for Fresh Air Ventilation
 
-This repository provides a tutorial on implementing the **Dedicated Outside Air System (DOAS) Start and Stop Algorithm** for HVAC systems. The algorithm ensures that the DOAS unit operates only when the building is occupied, improving energy efficiency while maintaining ventilation requirements.
+This repository provides a tutorial on implementing the **Dedicated Outside Air System (DOAS) Control Algorithm** for HVAC systems. The algorithm ensures the DOAS unit operates only during building occupancy, providing fresh air ventilation without temperature control. This method improves energy efficiency while maintaining indoor air quality.
 
 ---
 
 ### Key Insights
-- **Simple Control Logic**: Ensures DOAS units operate only when people are present.
-- **Optimized Ventilation**: Specifically for heat pump and VRF systems to provide ventilation without unnecessary runtime.
-- **Flexible Scheduling**: Integrates with BAS schedules via BACnet or similar protocols, a calendar widget in IoT, or hardcoded start/stop times and days of operation.
+- **Ventilation-Only Purpose**: The DOAS unit operates solely to provide fresh air during occupancy. It does not control heating or cooling.
+- **Occupancy-Based Operation**: Activates DOAS only when the building is occupied, ensuring efficient ventilation.
+- **Flexible Scheduling**: Integrates with Building Automation Systems (BAS), IoT calendar widgets, or hardcoded schedules.
 
 ---
 
-### Overview of the Algorithm
-The DOAS Start and Stop Algorithm determines the occupancy status of the building and adjusts the DOAS unit control accordingly:
-- **Building Unoccupied**: Overrides the occupancy command to keep the DOAS unit off.
-- **Building Occupied**: Releases the control back to the building automation system (BAS), allowing normal operation.
+## Activity Diagram of DOAS Control Process
 
-#### Requirements:
-1. **Schedule Input**: The building occupancy schedule can come from:
-   - **Building Automation System (BAS)**: Utilizing BACnet or similar communication protocols.
-   - **IoT Calendar Widget**: Allows dynamic scheduling through a user interface.
-   - **Hardcoded Values**: Start and stop times, as well as occupied days, are defined directly in the configuration.
+<details>
+  <summary>DOAS Control Logic</summary>
 
-2. **DOAS System**: A dedicated outside air system for heat pump and VRF systems to provide ventilation.
+```mermaid
+graph TD
 
----
+    subgraph Initialization["Initialization"]
+        Start[Start] --> CheckOccupancy["Check if Building is Occupied"]
+    end
 
-### Adjustable Algorithm Variables
+    subgraph OccupancyCheck["Occupancy Check"]
+        CheckOccupancy -->|Yes| ActivateDOAS["Activate DOAS for Ventilation"]
+        CheckOccupancy -->|No| DeactivateDOAS["Deactivate DOAS"]
+        
+        ActivateDOAS --> LogActivated["Release DOAS to BAS Control"]
+        DeactivateDOAS --> OverrideEquipOff["Override Equip Off"]
+        
+        LogActivated --> WaitForNextCheck["Sleep 1 Minute"]
+        OverrideEquipOff --> WaitForNextCheck["Sleep 1 Minute"]
+        
+        WaitForNextCheck --> CheckOccupancy
+    end
 
-| Variable              | Description                                                    | Default Value         |
-|------------------------|----------------------------------------------------------------|-----------------------|
-| **Building Start Time**| The time when the building becomes occupied.                  | `7:00 AM`            |
-| **Building End Time**  | The time when the building becomes unoccupied.                | `6:00 PM`            |
-| **Days of Week**       | Days when the building is occupied.                           | `Monday-Friday`      |
-| **Override Command**   | Command to turn off the DOAS unit during unoccupied hours.    | `DOAS_Off`           |
-| **Release Command**    | Command to release control to the BAS during occupied hours.  | `Release_Control`    |
+   %% Styles for Highlighting
+   style CheckSchedule fill:#f9f,stroke:#333,stroke-width:2px
+   style ActivateDOAS fill:#ccf,stroke:#333,stroke-width:2px
+   style DeactivateDOAS fill:#ccf,stroke:#333,stroke-width:2px
+   style OverrideEquipOff fill:#fcc,stroke:#333,stroke-width:2px
+   style LogActivated fill:#cfc,stroke:#333,stroke-width:2px
 
----
+   %% Additional Notes for Context
+   Note["Additional Notes: Occupancy should NOT be derived from a BAS schedule. Use IoT calendar widget or hard coded actual building occupancy hours."]
+   VentilationPurpose["The DOAS is activated solely for ventilation purposes, ensuring fresh air supply when the building is occupied. Temperature control is handled separately."]
 
-### How the Algorithm Works
-1. **Check Current Time**:
-   - Compare the current time against the building schedule sourced from:
-     - BAS via BACnet or similar protocol.
-     - IoT calendar widget.
-     - Hardcoded values.
-
-2. **Apply Overrides**:
-   - **If Unoccupied**: Issue an override command (`DOAS_Off`) to keep the DOAS unit off.
-   - **If Occupied**: Issue a release command (`Release_Control`) to allow BAS control.
-
-3. **Schedule Inputs**:
-   - Schedules can be updated dynamically through the BAS or IoT interface.
-   - Hardcoded schedules can be used for simple and consistent control.
-
----
-
-## Python Implementation
-
-#### Running the Script
-```bash
-$ python doas_unit_control.py
 ```
 
-#### Example Py Output
-```
-Starting DOAS Unit Control Simulation...
-Sunday 03:15: Building is unoccupied. Override the BAS! Command_DOAS_Off
-Thursday 03:40: Building is unoccupied. Override the BAS! Command_DOAS_Off
-Friday 06:43: Building is unoccupied. Override the BAS! Command_DOAS_Off
-Friday 06:16: Building is unoccupied. Override the BAS! Command_DOAS_Off
-Monday 02:57: Building is unoccupied. Override the BAS! Command_DOAS_Off
-Wednesday 19:23: Building is unoccupied. Override the BAS! Command_DOAS_Off
-Wednesday 10:15: Building is occupied. Release back to the BAS! Release_DOAS_Overrides
-Friday 11:05: Building is occupied. Release back to the BAS! Release_DOAS_Overrides
-Monday 22:01: Building is unoccupied. Override the BAS! Command_DOAS_Off
-Wednesday 23:53: Building is unoccupied. Override the BAS! Command_DOAS_Off
-...
-```
-
----
-
-## JavaScript Implementation
-
-#### Running the Script
-```bash
-$ node doasUnitControl.js
-```
-
-#### Example Js Output
-```
-Starting DOAS Unit Control Simulation...
-Thursday 14:38: Building is occupied. Release back to the BAS! Release_DOAS_Overrides
-Thursday 04:13: Building is unoccupied. Override the BAS! Command_DOAS_Off
-Friday 20:25: Building is unoccupied. Override the BAS! Command_DOAS_Off
-Sunday 14:06: Building is unoccupied. Override the BAS! Command_DOAS_Off
-Wednesday 12:31: Building is occupied. Release back to the BAS! Release_DOAS_Overrides
-Sunday 18:43: Building is unoccupied. Override the BAS! Command_DOAS_Off
-Wednesday 20:31: Building is unoccupied. Override the BAS! Command_DOAS_Off
-...
-```
+</details>
 
 ---
 
@@ -123,20 +74,17 @@ Moderate
 ---
 
 ### Process
-1. Check the current time and compare it against the building schedule sourced from:
+1. **Check Current Time**: Compare the current time against the building schedule sourced from:
    - **BAS**: Using BACnet or similar protocols.
    - **IoT Calendar Widget**: For user-configurable schedules.
    - **Hardcoded Values**: Directly set start/stop times and occupied days.
-2. If the time is outside the occupied hours:
-   - Override the occupancy command to turn the DOAS unit off.
-3. If the time is within the occupied hours:
-   - Release the control back to the BAS to operate normally.
+2. **Apply Overrides**:
+   - **If Unoccupied**: Override the occupancy command to turn the DOAS unit off.
+   - **If Occupied**: Release the control back to the BAS to operate normally.
 
 ---
 
-## Data Model in Haystack
-
-**Note:** The algorithm requires proper Haystack markers and tags for the building schedule and occupancy commands to manage the DOAS unit operation effectively.
+### Data Model in Haystack
 
 | **Point Name**                        | **navName**             | **Marker Tags in Haystack**               |
 |---------------------------------------|-------------------------|--------------------------------------------|
@@ -153,9 +101,114 @@ Moderate
 - **Override Command**: Command to turn off the DOAS unit.
 - **Release Command**: Command to allow normal BAS operation.
 
+</details>
+
 ---
 
-### Notes
-This algorithm is ideal for standalone DOAS units in systems using heat pumps or VRF technologies. The scheduling flexibility ensures efficient operation tailored to the building's occupancy patterns.
+The new version with the Mermaid diagram and `<details>` features should already include most of the important details from the old version. However, upon reviewing, here are a few missing or underemphasized elements that should be included to ensure completeness and consistency:
+
+### Missing or Underemphasized Details:
+1. **Specific Notes on Applicability**:
+   - The old version mentions that the algorithm is ideal for standalone DOAS units in systems using heat pumps or VRF technologies. This can be re-emphasized in the new version.
+
+2. **Dynamic Scheduling Options**:
+   - The old version specifies three sources of schedules: BAS, IoT calendar widget, and hardcoded values. While the new version briefly mentions them, it could elaborate on their usage in a `<details>` section.
+
+3. **Example Outputs**:
+   - The old version includes detailed Python and JavaScript script outputs as examples. These should be added to the new version under `<details>` for clarity.
+
+4. **Haystack Data Model**:
+   - The Haystack markers and tags in the old version are critical for implementation. Ensure these are fully captured in the new version under a `<details>` section.
+
+5. **Control Logic Details**:
+   - While the new version has a summary of the logic, the detailed process outlined in the old version (steps to compare time, override commands, etc.) should also be fully captured in the `<details>` section.
+
+---
+
+### Python and JavaScript Implementation
+
+<details>
+  <summary>Example Python Implementation</summary>
+
+```bash
+$ python doas_unit_control.py
+```
+
+Example Output:
+```
+Starting DOAS Unit Control...
+Monday 07:00: Building is occupied. Release to BAS control. Command: Release_Control
+Monday 19:00: Building is unoccupied. Override equipment off. Command: DOAS_Off
+Tuesday 07:00: Building is occupied. Release to BAS control. Command: Release_Control
+...
+```
 
 </details>
+
+<details>
+  <summary>Example JavaScript Implementation</summary>
+
+```bash
+$ node doasUnitControl.js
+```
+
+Example Output:
+```
+Starting DOAS Unit Control Simulation...
+Monday 07:00: Building is occupied. Release to BAS control. Command: Release_Control
+Monday 19:00: Building is unoccupied. Override equipment off. Command: DOAS_Off
+...
+```
+
+</details>
+
+---
+
+### Scheduling Inputs
+
+<details>
+  <summary>Dynamic Schedule Sources</summary>
+
+The DOAS algorithm allows schedules to be sourced dynamically from:
+- **Building Automation System (BAS)**: Using BACnet or similar communication protocols.
+- **IoT Calendar Widget**: For user-configurable schedules.
+- **Hardcoded Values**: Static start/stop times and occupied days.
+
+</details>
+
+---
+
+### Applicability Notes
+
+<details>
+  <summary>Applicability and Flexibility</summary>
+
+This algorithm is ideal for standalone DOAS units in HVAC systems that use:
+- **Heat Pumps**
+- **VRF Technologies**
+
+It provides flexible scheduling to ensure ventilation tailored to the building’s occupancy patterns.
+
+</details>
+
+---
+
+### Haystack Data Model
+
+<details>
+  <summary>Haystack Marker Tags</summary>
+
+The algorithm requires proper Haystack markers and tags for managing the DOAS unit operation effectively:
+
+| **Point Name**                        | **navName**             | **Marker Tags in Haystack**               |
+|---------------------------------------|-------------------------|--------------------------------------------|
+| **Building Occupancy Schedule**       | `buildingOccSchedule`   | `schedule`, `building`, `occ`             |
+| **DOAS Occupancy Command**            | `doasOccCmd`            | `doas`, `occ`, `cmd`                      |
+| **DOAS Status**                       | `doasStatus`            | `doas`, `status`                          |
+
+</details>
+
+
+### Notes
+This algorithm is ideal for scenarios requiring fresh air ventilation in occupied buildings, such as office spaces, schools, and retail environments. It reduces unnecessary runtime during unoccupied periods, ensuring energy efficiency while maintaining indoor air quality. The DOAS unit's operation is strictly for ventilation purposes, not for heating or cooling.
+
