@@ -52,77 +52,68 @@ This query retrieves historical data required for analyzing SAT adjustments.
 | **OATmax**           | Maximum outside air temperature for reset control.             | `70°F`               |
 | **Td**               | Delay timer before logic activates.                            | `10 minutes`         |
 | **T**                | Time step for evaluating SAT reset logic.                      | `2 minutes`          |
+| **SPres-max**            | Maximum amount of change allowed per time step  | `1°F`           |
 | **HighZoneTempSpt**  | High Zone threshold to generate requests (znt > 75°F)          | `75.0°F`              |
 
 ---
 
-## Python Implementation
+## Implementation
 
-#### Running the Script
+#### Python
 ```bash
 $ python ahu_temperature_reset_sim.py
 ```
 
-#### Example Py Output
-```
-Ignored Zone Temperatures: 78.05, 77.88
-Max Zone Temperature (After Excluding Top 2): 76.28°F
-Net Requests (Factoring Ignored Zones): 1
-We need more cooling!...
-Current OAT: 88.00°F
-Dynamic SPmax: 60.00°F
-Previous SAT Setpoint: 55.40°F
-Current SAT Setpoint: 55.10°F (decreased)
-
-Ignored Zone Temperatures: 76.05, 75.13
-Max Zone Temperature (After Excluding Top 2): 71.63°F
-Net Requests (Factoring Ignored Zones): 0
-We need less cooling!...
-Current OAT: 88.00°F
-Dynamic SPmax: 60.00°F
-Previous SAT Setpoint: 55.10°F
-Current SAT Setpoint: 55.30°F (increased)
-
-Ignored Zone Temperatures: 79.88, 78.98
-Max Zone Temperature (After Excluding Top 2): 78.43°F
-Net Requests (Factoring Ignored Zones): 2
-We need more cooling!...
-Current OAT: 88.00°F
-Dynamic SPmax: 60.00°F
-Previous SAT Setpoint: 55.30°F
-Current SAT Setpoint: 55.00°F (decreased)
-```
-
----
-
-## JavaScript Implementation
-
-#### Running the Script
+#### JavaScript
 ```bash
 $ node ahuTemperatureResetSim.js
 ```
 
-#### Example Js Output
-```
-Ignored Zone Temperatures: 79.33, 76.78
-Max Zone Temperature (After Excluding Top 2): 74.91°F
-Net Requests (Factoring Ignored Zones): 0
-We need less cooling!...
-Current OAT: 66.47°F
-Dynamic SPmax: 61.77°F
-Previous SAT Setpoint: 58.90°F
-Current SAT Setpoint: 59.10°F (increased)
+#### Java
+```bash
+# compile
+$ javac AHUTemperatureResetSim.java
 
-Ignored Zone Temperatures: 79.42, 77.91
-Max Zone Temperature (After Excluding Top 2): 76.66°F
-Net Requests (Factoring Ignored Zones): 1
+# run
+$ java AHUTemperatureResetSim
+```
+
+#### Example Output Per Timestep
+```
+Ignored Zone Temperatures: 79.95, 79.11
+Max Zone Temperature (After Excluding Top 2): 78.82°F
+Net Requests (Factoring Ignored Zones): 10
+Total Adjustment is -1.00°F
 We need more cooling!...
-Current OAT: 70.11°F
+Current OAT: 71.99°F
 Dynamic SPmax: 60.00°F
-Previous SAT Setpoint: 59.10°F
-Current SAT Setpoint: 58.80°F (decreased)
+Previous SAT Setpoint: 55.00°F
+Current SAT Setpoint: 55.00°F (decreased)
+
+Ignored Zone Temperatures: 79.50, 79.00
+Max Zone Temperature (After Excluding Top 2): 78.96°F
+Net Requests (Factoring Ignored Zones): 11
+Total Adjustment is -1.00°F
+We need more cooling!...
+Current OAT: 69.02°F
+Dynamic SPmax: 60.49°F
+Previous SAT Setpoint: 55.00°F
+Current SAT Setpoint: 55.00°F (decreased)
+
+Ignored Zone Temperatures: 79.76, 79.21
+Max Zone Temperature (After Excluding Top 2): 78.95°F
+Net Requests (Factoring Ignored Zones): 10
+Total Adjustment is -1.00°F
+We need more cooling!...
+Current OAT: 63.96°F
+Dynamic SPmax: 63.02°F
+Previous SAT Setpoint: 55.00°F
+Current SAT Setpoint: 55.00°F (decreased)
 ...
 ```
+
+---
+
 
 ---
 

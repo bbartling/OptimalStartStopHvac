@@ -58,65 +58,65 @@ This query retrieves a week's worth of historical data required for proper param
 | **I**                | Number of ignored requests (highest damper positions)          | `2`                  |
 | **SPtrim**           | Amount by which the setpoint is trimmed if below thresholds    | `-0.02” WC`          |
 | **SPres**            | Amount by which the setpoint is increased if above thresholds  | `0.04” WC`           |
+| **SPres-max**            | Maximum amount of change allowed per time step  | `0.15” WC`           |
 | **HighDamperSpt**    | Damper position threshold to generate requests (dpr > 85%)     | `0.85%`              |
 
 
-## Python Implementation
+## Implementation
 
-### Running the Script
+#### Python
 ```bash
-$ python ahu_static_pressure_sim.py
+$ python ahu_temperature_reset_sim.py
 ```
 
-### Example Py Output
+#### JavaScript
+```bash
+$ node ahuTemperatureResetSim.js
 ```
-Ignored Damper Positions: 0.84,0.84
-Max Damper Position (After Excluding Top 2): 0.84
-Net Requests (Factoring Ignored Dampers): 0
-We need less static!...
-Previous Static Pressure Setpoint: 0.56” WC
-Current Static Pressure Setpoint: 0.54” WC (decreased)
 
-Ignored Damper Positions: 0.91,0.87
+#### Java
+```bash
+# compile
+$ javac javac AHUStaticPressureSimulation.java
+
+# run
+$ java AHUStaticPressureSimulation
+```
+
+#### Example Output Per Timestep
+```
+Ignored Damper Positions: [0.92, 0.91]
 Max Damper Position (After Excluding Top 2): 0.87
 Net Requests (Factoring Ignored Dampers): 1
+Total Adjustment is 0.06 Inch WC
 We need more static!...
-Previous Static Pressure Setpoint: 0.54” WC
-Current Static Pressure Setpoint: 0.60” WC (increased)
+Previous Static Pressure Setpoint: 1.50” WC
+Current Static Pressure Setpoint: 1.50” WC (increased)
 
-Ignored Damper Positions: 0.79,0.74
-Max Damper Position (After Excluding Top 2): 0.72
+Ignored Damper Positions: [0.92, 0.84]
+Max Damper Position (After Excluding Top 2): 0.82
 Net Requests (Factoring Ignored Dampers): 0
+Total Adjustment is -0.02 Inch WC
 We need less static!...
-Previous Static Pressure Setpoint: 0.60” WC
-Current Static Pressure Setpoint: 0.58” WC (decreased)
+Previous Static Pressure Setpoint: 1.50” WC
+Current Static Pressure Setpoint: 1.48” WC (decreased)
+
+Ignored Damper Positions: [0.94, 0.93]
+Max Damper Position (After Excluding Top 2): 0.87
+Net Requests (Factoring Ignored Dampers): 2
+Total Adjustment is 0.12 Inch WC
+We need more static!...
+Previous Static Pressure Setpoint: 1.48” WC
+Current Static Pressure Setpoint: 1.50” WC (increased)
+
+Ignored Damper Positions: [0.94, 0.93]
+Max Damper Position (After Excluding Top 2): 0.91
+Net Requests (Factoring Ignored Dampers): 5
+Total Adjustment is 0.15 Inch WC
+We need more static!...
+Previous Static Pressure Setpoint: 1.50” WC
+Current Static Pressure Setpoint: 1.50” WC (increased)
 ...
-```
-
-## JavaScript Implementation
-
-### Running the Script
-```bash
-$ node ahuStaticPressureSim.js 
-```
-
-### Example Js Output
-```
-Starting AHU Static Pressure Simulation...
-Ignore Var Set to 2 for the simulation...
-Ignored Damper Positions: 0.92,0.92
-Max Damper Position (After Excluding Top 2): 0.78
-Net Requests (Factoring Ignored Dampers): 0
-We need less static!...
-Previous Static Pressure Setpoint: 0.50” WC
-Current Static Pressure Setpoint: 0.50” WC (decreased)
-
-Ignored Damper Positions: 0.85,0.84
-Max Damper Position (After Excluding Top 2): 0.81
-Net Requests (Factoring Ignored Dampers): 0
-We need less static!...
-Previous Static Pressure Setpoint: 0.50” WC
-Current Static Pressure Setpoint: 0.50” WC (decreased)
 ```
 
 ---

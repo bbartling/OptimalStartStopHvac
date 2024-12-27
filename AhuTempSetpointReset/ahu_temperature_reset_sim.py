@@ -16,8 +16,9 @@ I = 2  # Number of ignored requests (top I zones excluded)
 
 SPtrim = +0.2  # Trim adjustment in °F
 SPres = -0.3  # Response adjustment in °F
+SPres_max = 1.0  # Maximum allowable response adjustment (inches °F)
 
-NUM_ZONES = 10  # Fixed number of zones for simulation
+NUM_ZONES = 40  # Fixed number of zones for simulation
 current_SAT = SP0
 device_on = False
 
@@ -45,11 +46,7 @@ def calculate_requests(zone_temps):
     remaining_temps = sorted_temps[I:]  # Temperatures after ignoring top I
     max_remaining_temp = max(remaining_temps) if remaining_temps else None
 
-    # Use a simple for loop to count requests
-    num_requests = 0
-    for temp in remaining_temps:
-        if temp >= HighZoneTempSpt:
-            num_requests += 1
+    num_requests = sum(1 for temp in remaining_temps if temp >= HighZoneTempSpt)
 
     # Print results
     print(f"Ignored Zone Temperatures: {', '.join(f'{temp:.2f}' for temp in ignored_temps)}")
@@ -65,18 +62,31 @@ def adjust_SAT(current_SAT, num_requests, dynamic_SPmax):
     """
     Adjust the SAT based on the number of requests.
     Trim if no requests, respond if requests exist.
+    Limit adjustment to SPres_max.
     """
+    total_adjustment = 0
     if num_requests == 0:
         # Trim SAT
-        adjustment = SPtrim
-        current_SAT = min(dynamic_SPmax, current_SAT + adjustment)  # Ensure SAT trim stays within dynamic_SPmax
-        print("We need less cooling!...")
+        total_adjustment = SPtrim
     else:
         # Respond by decreasing SAT
-        adjustment = SPres
-        current_SAT = max(SPmin, current_SAT + adjustment)  # Ensure SAT does not go below SPmin
-        print("We need more cooling!...")
-    return current_SAT, adjustment
+        total_adjustment = SPres * num_requests
+
+    # Cap the adjustment to SPres_max
+    if total_adjustment > 0:
+        total_adjustment = min(total_adjustment, SPres_max)
+    elif total_adjustment < 0:
+        total_adjustment = max(total_adjustment, -SPres_max)
+
+    print(f"Total Adjustment is {total_adjustment:.2f}°F")
+
+    # Update the current SAT with capped adjustment
+    current_SAT = max(SPmin, min(dynamic_SPmax, current_SAT + total_adjustment))
+
+    adjustment_type = "increased" if total_adjustment > 0 else "decreased"
+    print(f"We need {'less' if total_adjustment > 0 else 'more'} cooling!...")
+
+    return current_SAT, total_adjustment, adjustment_type
 
 # Simulation
 print("Starting AHU Temperature Reset Simulation...")
@@ -87,25 +97,23 @@ time.sleep(Td)  # Wait for delay timer
 device_on = True
 while device_on:
     # Simulate a fluctuating outside air temperature
-    current_OAT = 88 #random.uniform(55, 75)
+    current_OAT = random.uniform(55, 75)
     dynamic_SPmax = calculate_dynamic_SPmax(current_OAT)  # Adjust SPmax based on OAT
-    
+
     # Simulate zone temperatures
+    # zone_temps can be a fixed number to simulate increase and decrese logic
     zone_temps = [random.uniform(65, 80) for _ in range(NUM_ZONES)]
     num_requests = calculate_requests(zone_temps)
-    
+
     # Adjust SAT based on cooling requests
     previous_SAT = current_SAT
-    current_SAT, adjustment = adjust_SAT(current_SAT, num_requests, dynamic_SPmax)
-    adjustment_type = (
-        "increased" if adjustment > 0 else "decreased"
-    )
-    
+    current_SAT, adjustment, adjustment_type = adjust_SAT(current_SAT, num_requests, dynamic_SPmax)
+
     # Print the results for this time step
     print(f"Current OAT: {current_OAT:.2f}°F")
     print(f"Dynamic SPmax: {dynamic_SPmax:.2f}°F")
     print(f"Previous SAT Setpoint: {previous_SAT:.2f}°F")
     print(f"Current SAT Setpoint: {current_SAT:.2f}°F ({adjustment_type})\n")
-    
+
     # Sleep for the time step
     time.sleep(T)
