@@ -2,6 +2,59 @@
 
 This repository provides a tutorial on implementing the **Supply Air Temperature Reset Algorithm** for HVAC systems. The strategy dynamically adjusts supply air temperature (SAT) setpoints based on outside air temperature (OAT) to optimize energy use while maintaining occupant comfort.
 
+
+```mermaid
+graph TD
+
+%% Check Schedule Subgraph
+subgraph CheckSchedule["Check Schedule"]
+    Initialization[Initialization] --> NonWorkingDayCheck["Is it a Non-Occupied Building Day?"]
+    NonWorkingDayCheck -->|Yes| WaitNonWorking["Wait 1 Minute"]
+    WaitNonWorking --> NonWorkingDayCheck
+    NonWorkingDayCheck -->|No| OccupancyCheck["Is the Building Occupied?"]
+    OccupancyCheck -->|No| WaitForOccupancy["Wait 1 Minute"]
+end
+
+%% Fan Status Check Subgraph
+subgraph FanStatusCheck["Fan Status Check"]
+    WaitForOccupancy --> OccupancyCheck
+    OccupancyCheck -->|Yes| SupplyFanCheck["Is AHU Supply Fan Proven ON?"]
+    SupplyFanCheck -->|No| WaitForFan["Wait for AHU Supply Fan to Turn ON"]
+    WaitForFan --> SupplyFanCheck
+end
+
+%% Telemetry Collection Subgraph
+subgraph TelemetryCollection["Telemetry Collection"]
+    SupplyFanCheck -->|Yes| TimeDelay["Perform Td Time Delay"]
+    TimeDelay --> Timestep["Perform Timestep T"]
+    Timestep --> CollectTelemetry["Collect Telemetry from SQL Server"]
+end
+
+%% Optimization Subgraph
+subgraph Optimization["Compute Optimized Setpoint"]
+    CollectTelemetry --> OptimizeSetpoint["Compute Optimized Setpoint for AHU Temperature or Pressure"]
+    OptimizeSetpoint --> ApplySetpoint["Apply the New Setpoint"]
+end
+
+%% Unoccupancy Check Subgraph
+subgraph UnoccupancyCheck["Check for Unoccupancy"]
+    ApplySetpoint --> CheckUnoccupied["Is the Building Unoccupied?"]
+    CheckUnoccupied -->|Yes| ReleaseOverrides["Release AHU Overrides and/or Set Back to Defaults"]
+    ReleaseOverrides --> Initialization
+    CheckUnoccupied -->|No| Timestep
+end
+
+%% Notes
+OptimizeSetpoint:::note
+ApplySetpoint:::note
+ReleaseOverrides:::note
+    classDef note fill:#f9f,stroke:#333,stroke-width:2px;
+
+%% Disabled During Unoccupied
+NonWorkingDayCheck:::note
+    classDef note fill:#f96,stroke:#333,stroke-width:2px;
+```
+
 ---
 
 ### Key Insights

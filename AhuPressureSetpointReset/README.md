@@ -2,6 +2,58 @@
 
 This repository provides a tutorial on implementing the **Duct Static Pressure Reset Algorithm** for HVAC systems, inspired by industry best practices and ASHRAE Guideline 36. The strategy dynamically adjusts supply air static pressure to optimize energy consumption while maintaining zone comfort. This documentation is designed for skilled professionals in HVAC, Building Automation Systems (BAS), Automated Supervisory Optimization (ASO), and IoT who wish to learn the mechanics of this algorithm.
 
+```mermaid
+graph TD
+
+%% Check Schedule Subgraph
+subgraph CheckSchedule["Check Schedule"]
+    Initialization[Initialization] --> NonWorkingDayCheck["Is it a Non-Occupied Building Day?"]
+    NonWorkingDayCheck -->|Yes| WaitNonWorking["Wait 1 Minute"]
+    WaitNonWorking --> NonWorkingDayCheck
+    NonWorkingDayCheck -->|No| OccupancyCheck["Is the Building Occupied?"]
+    OccupancyCheck -->|No| WaitForOccupancy["Wait 1 Minute"]
+end
+
+%% Fan Status Check Subgraph
+subgraph FanStatusCheck["Fan Status Check"]
+    WaitForOccupancy --> OccupancyCheck
+    OccupancyCheck -->|Yes| SupplyFanCheck["Is AHU Supply Fan Proven ON?"]
+    SupplyFanCheck -->|No| WaitForFan["Wait for AHU Supply Fan to Turn ON"]
+    WaitForFan --> SupplyFanCheck
+end
+
+%% Telemetry Collection Subgraph
+subgraph TelemetryCollection["Telemetry Collection"]
+    SupplyFanCheck -->|Yes| TimeDelay["Perform Td Time Delay"]
+    TimeDelay --> Timestep["Perform Timestep T"]
+    Timestep --> CollectTelemetry["Collect Telemetry from SQL Server"]
+end
+
+%% Optimization Subgraph
+subgraph Optimization["Compute Optimized Setpoint"]
+    CollectTelemetry --> OptimizeSetpoint["Compute Optimized Setpoint for AHU Temperature or Pressure"]
+    OptimizeSetpoint --> ApplySetpoint["Apply the New Setpoint"]
+end
+
+%% Unoccupancy Check Subgraph
+subgraph UnoccupancyCheck["Check for Unoccupancy"]
+    ApplySetpoint --> CheckUnoccupied["Is the Building Unoccupied?"]
+    CheckUnoccupied -->|Yes| ReleaseOverrides["Release AHU Overrides and/or Set Back to Defaults"]
+    ReleaseOverrides --> Initialization
+    CheckUnoccupied -->|No| Timestep
+end
+
+%% Notes
+OptimizeSetpoint:::note
+ApplySetpoint:::note
+ReleaseOverrides:::note
+    classDef note fill:#f9f,stroke:#333,stroke-width:2px;
+
+%% Disabled During Unoccupied
+NonWorkingDayCheck:::note
+    classDef note fill:#f96,stroke:#333,stroke-width:2px;
+```
+
 ## Key Insights
 - **Energy Efficiency**: Reduces fan energy consumption while ensuring sufficient airflow to VAV zones.
 - **Inputs from BAS Telemetry**: Zone damper positions and static pressure data are expected to come from sensors ingested into a local BAS system and stored in an SQL database.

@@ -1,5 +1,5 @@
 ## aso-pseudo-code
-This repository explores versatile algorithms for Automated Supervisory Optimization (ASO), designed for implementation through IoT to enhance HVAC system performance in smart building environments.
+This repository explores versatile algorithms for Automated Supervisory Optimization (ASO), designed for implementation through IoT to enhance HVAC system performance in smart building environments. Each pseudo code folder has simulation to run in Python, JavaScript, and Java versions of the algorithm.
 
 - [x] **[Optimal Start/Stop](https://github.com/bbartling/aso-pseudo-code/tree/develop/OptimalStartStop)**
    - Based on PNNL research.
