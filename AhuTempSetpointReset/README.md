@@ -27,7 +27,7 @@ end
 subgraph TelemetryCollection["Telemetry Collection"]
     SupplyFanCheck -->|Yes| TimeDelay["Perform Td Time Delay"]
     TimeDelay --> Timestep["Perform Timestep T"]
-    Timestep --> CollectTelemetry["Collect Telemetry from SQL Server"]
+    Timestep --> CollectTelemetry["Collect Telemetry from SQL db or BACnet request"]
 end
 
 %% Optimization Subgraph
@@ -39,7 +39,7 @@ end
 %% Unoccupancy Check Subgraph
 subgraph UnoccupancyCheck["Check for Unoccupancy"]
     ApplySetpoint --> CheckUnoccupied["Is the Building Unoccupied?"]
-    CheckUnoccupied -->|Yes| ReleaseOverrides["Release AHU Overrides and/or Set Back to Defaults"]
+    CheckUnoccupied -->|Yes| ReleaseOverrides["Release AHU Overrides and/or Set AHU Setpoints Back to Defaults"]
     ReleaseOverrides --> Initialization
     CheckUnoccupied -->|No| Timestep
 end

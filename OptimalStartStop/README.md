@@ -45,16 +45,18 @@ end
 %% AHU Start and Warm-Up Subgraph
 subgraph AHUStartAndWarmUp["AHU Start and Warm-Up"]
     OptimalStartTimeReachedCheck -->|Yes| ActivateAHURecirculation["Activate AHU Recirculation Mode"]
-    ActivateAHURecirculation --> LogStartTime["Log Start Time"]
+    ActivateAHURecirculation --> ActivateVavBoxesToOcc["Send VAV boxes to Occupied Setpoints"]
+    ActivateVavBoxesToOcc --> LogStartTime["Log Start Time"]
     LogStartTime --> ZoneAtSetpointCheck["Zone at Setpoint?"]
-    ZoneAtSetpointCheck -->|No| WaitDuringWarmUp["Wait During Warm-Up"]
-    ZoneAtSetpointCheck -->|Yes| LogStopTimeAndEndWarmUp["Log Stop Time & End Warm-Up"]
+    ZoneAtSetpointCheck -->|No| WaitDuringWarmUp["Wait For Zone to Warm-Up To Occ Setpoint"]
+    ZoneAtSetpointCheck -->|Yes| LogStopTimeAndEndWarmUp["Log Stop Time"]
+    LogStopTimeAndEndWarmUp --> threadEnds["Process Ends"]
     WaitDuringWarmUp --> ZoneAtSetpointCheck
 end
 
 %% Control Handoff Subgraph
-subgraph ControlHandoff["Release back to the BAS"]
-    LogStopTimeAndEndWarmUp --> BuildingOccupiedCheck["Building Occupied?"]
+subgraph ControlHandoff["Wait Until Occupied"]
+    ActivateAHURecirculation --> BuildingOccupiedCheck["Building Occupied?"]
     BuildingOccupiedCheck -->|Yes| HandoffToBAS["Release overrides back to BAS"]
     BuildingOccupiedCheck -->|No| WaitPostOccupancy["Wait For Building Occupancy defined in BAS controller"]
     WaitPostOccupancy -->|AHU is operating in a recirculation air mode warming up the zones| BuildingOccupiedCheck
@@ -88,6 +90,7 @@ style BuildingOccupiedCheck fill:#ccf,stroke:#333,stroke-width:2px
 style WaitPostOccupancy fill:#ffc,stroke:#333,stroke-width:2px
 style HandoffToBAS fill:#9cf,stroke:#333,stroke-width:2px
 style End fill:#f9f,stroke:#333,stroke-width:2px
+
 
 ```
 </details>
