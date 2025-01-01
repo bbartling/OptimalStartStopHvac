@@ -1,4 +1,4 @@
-timestamp,VAV2_7_SpaceTemp,OaTemp
+timestamp,SpaceTemp,OaTemp
 2024-01-01 00:00:00,64.11,33.21
 2024-01-01 00:05:00,64.03,33.31
 2024-01-01 00:10:00,64.03,32.61
