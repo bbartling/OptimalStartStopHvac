@@ -1,57 +1,56 @@
 ## Recovery Time Calcs
 
-This Python script analyzes HVAC zone temperature data to identify and evaluate **warm-up phases**, where the temperature rises to reach an occupied setpoint. It uses configurable parameters to tailor the analysis for different data sets and operational scenarios. 
+This Python script analyzes HVAC zone temperature data to identify and evaluate **warm-up phases**, during which the temperature rises to reach an occupied setpoint. The script processes time-series data by excluding specified days, calculating thresholds for occupied and unoccupied conditions, and detecting steep temperature increases and proximity to the occupied setpoint. Using this information, it determines whether the system is in a warm-up phase and calculates the total warm-up duration in minutes for each day. Additionally, the script extracts 4AM outdoor air and zone air temperatures for each day and records these along with the warm-up duration to a CSV file. It also generates visualizations, including line plots showing the warm-up phases and temperature thresholds, bar charts for daily warm-up durations, and histograms illustrating the distribution of zone temperatures over the analyzed period, providing comprehensive insights into the warm-up behavior of the HVAC system.
 
-### Key Steps in the Analysis:
-1. **Loading and Preprocessing Data**:
-   - The script loads zone temperature data from a CSV file, converts timestamps for time-based operations, and sets the index for resampling and filtering.
-
-2. **Daily Setpoint Calculation**:
-   - **Occupied threshold (`occupied_threshold`)**: Calculated as the mean of the maximum daily temperatures, representing periods when the building is occupied.
-   - **Unoccupied threshold (`unoccupied_threshold`)**: Calculated as the mean of the minimum daily temperatures, representing periods when the building is unoccupied.
-
-3. **Warm-Up Phase Identification**:
-   - **Steep Increases**: The script detects sharp temperature rises (greater than `STEEP_INCREASE_THRES` degrees) to flag the start of a warm-up phase.
-   - **Proximity to Setpoint**: The script marks the warm-up phase as complete when the temperature approaches the `occupied_threshold` within `OCC_ZONE_TEMP_PROX_THRES` degrees.
-
-4. **Smoothing and Refinement**:
-   - A rolling window (`ROLLING_WINDOW_SIZE`) smooths the `Warm_Up_Active` column to remove isolated values that might be outliers or noise, ensuring only meaningful warm-up phases are considered.
-
-5. **Daily Duration Calculation**:
-   - The total warm-up duration for each day is calculated by summing intervals where warm-up is active and converting counts to minutes (`DATASET_MIN_PER_TIME_STEP`).
-
-6. **Exclusions**:
-   - Days specified in `EXCLUDE_DAYTYPES` (e.g., weekends and Mondays) are excluded from the analysis to focus on occupied building days.
-
-7. **Visualization and Output**:
-   - A bar chart summarizes daily warm-up durations, while a time-series plot highlights warm-up phases alongside the temperature profile.
-   - Results, including daily durations and 4 AM temperature readings for `SpaceTemp` and `OaTemp`, are saved to a structured output directory (`OUTPUT_DIR`).
-
----
-
-### Parameter Descriptions:
-- **`EXCLUDE_DAYTYPES`**:
-  - Days to exclude from calculations, typically when the building is unoccupied (e.g., weekends or Mondays).
-
-- **`OCC_ZONE_TEMP_PROX_THRES`**:
-  - The tolerance in degrees Fahrenheit to determine when the temperature is "close enough" to the `occupied_threshold`. This helps flag when the warm-up phase is complete.
-
-- **`STEEP_INCREASE_THRES`**:
-  - The minimum temperature increase in degrees Fahrenheit between time steps to detect the start of a warm-up phase from the `unoccupied_threshold`.
-
-- **`ROLLING_WINDOW_SIZE`**:
-  - The size of the rolling window (in data points) used to smooth the `Warm_Up_Active` column. Helps ignore outliers by requiring nearby supporting data.
-
-- **`DATASET_MIN_PER_TIME_STEP`**:
-  - The time resolution of the dataset in minutes. Used to convert counts of active intervals into total durations in minutes.
-
-- **`OUTPUT_DIR`**:
-  - The directory where results (CSV files and plots) are saved. Ensures organized output for multiple time ranges.
-
----
-
-### Getting Setup
+### Running the Py Script
 
 ```bash
 python -m pip install pandas matplotlib
 ```
+
+## SQL Instructions instead of Python to Extract Warm-Up Data for a Generic Time Range
+
+The following steps **attempts** to outline how to ***(mimic the same process as in the Py script)*** to extract the required HVAC zone temperature and outdoor air temperature data from a PostgreSQL time-series database for a single, configurable time range. The goal is to analyze warm-up durations and capture the 4AM temperature readings for outdoor air and zone air temperatures.
+
+#### Input Requirements:
+- **Time Range**: Defined by `time_ranges = {"range": ("2024-01-14", "2024-01-18")}`. Replace the start and end dates as needed.
+- **Table Schema**:
+  - `timestamp` (datetime): The timestamp for each data point.
+  - `zone_temp` (float): The zone air temperature.
+  - `outdoor_temp` (float): The outdoor air temperature.
+
+---
+
+### Steps to Extract Data:
+
+1. **Filter Data by Time Range**:
+   - Retrieve all rows from the database where the `timestamp` column falls within the specified time range (`start_date` to `end_date`).
+
+2. **Aggregate Data for Daily Warm-Up Analysis**:
+   - Group the filtered data by day (using `DATE_TRUNC` on the `timestamp`).
+   - Calculate the daily warm-up duration (`warm_up_duration_minutes`) by:
+     - Summing time intervals where the `zone_temp` exceeds a threshold (`minimum zone_temp + 0.5°F`).
+     - Multiply the count of such intervals by the time interval duration (e.g., 5 minutes).
+
+3. **Extract 4AM Temperature Values**:
+   - Identify rows where the `timestamp` corresponds to exactly 4AM.
+   - Extract the `zone_temp` (zone air temperature) and `outdoor_temp` (outdoor air temperature) for each day.
+
+4. **Combine Daily Warm-Up Durations with 4AM Temperatures**:
+   - Join the aggregated daily warm-up data with the 4AM temperature values.
+   - Ensure the data is aligned by day.
+
+5. **Output Results**:
+   - Return the combined dataset containing:
+     - `day`: The date for each row.
+     - `warm_up_duration_minutes`: Total calculated warm-up duration for the day in minutes.
+     - `zone_temp_at_4am`: The zone air temperature recorded at 4AM.
+     - `outdoor_temp_at_4am`: The outdoor air temperature recorded at 4AM.
+
+---
+
+### Key Notes:
+- The query will only return data for the days included in the specified time range.
+- The data is returned as a table (or query result) that can be visualized or processed further.
+- The calculation assumes regular intervals between temperature readings (e.g., 5 minutes).
+- The thresholds for warm-up detection (`zone_temp > min(zone_temp) + 0.5°F`) can be adjusted as needed.
