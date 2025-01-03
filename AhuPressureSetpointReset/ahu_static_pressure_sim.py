@@ -18,6 +18,7 @@ NUM_DAMPERS = 40  # Fixed number of VAV box dampers for the simulation only
 current_static_pressure = SP0
 device_on = False
 
+
 def calculate_requests(vav_dampers):
     """Calculate requests based on VAV damper positions being greater than or equal to HighDamperSpt."""
     sorted_dampers = sorted(vav_dampers, reverse=True)  # Sort descending
@@ -30,12 +31,15 @@ def calculate_requests(vav_dampers):
     # Print results
     print(f"Ignored Damper Positions: {ignored_dampers}")
     if max_remaining_damper is not None:
-        print(f"Max Damper Position (After Excluding Top {I}): {max_remaining_damper:.2f}")
+        print(
+            f"Max Damper Position (After Excluding Top {I}): {max_remaining_damper:.2f}"
+        )
     else:
         print(f"No remaining dampers to evaluate after excluding the top {I}.")
     print(f"Net Requests (Factoring Ignored Dampers): {num_requests}")
 
     return num_requests
+
 
 def adjust_static_pressure(current_pressure, num_requests):
     """
@@ -50,7 +54,7 @@ def adjust_static_pressure(current_pressure, num_requests):
     else:
         # Calculate response adjustment proportional to number of requests
         total_adjustment = SPres * num_requests
-    
+
     # Cap the adjustment to SPres_max
     if total_adjustment > 0:
         total_adjustment = min(total_adjustment, SPres_max)
@@ -58,13 +62,14 @@ def adjust_static_pressure(current_pressure, num_requests):
         total_adjustment = max(total_adjustment, -SPres_max)
 
     print(f"Total Adjustment is {total_adjustment} Inch WC")
-    
+
     # Update the current pressure with capped adjustment
     current_pressure = max(SPmin, min(SPmax, current_pressure + total_adjustment))
 
     adjustment_type = "increased" if total_adjustment > 0 else "decreased"
     print(f"We need {'more' if total_adjustment > 0 else 'less'} static!...")
     return current_pressure, total_adjustment, adjustment_type
+
 
 # Simulation
 print("Starting AHU Static Pressure Simulation...")
@@ -89,7 +94,9 @@ try:
 
         # Print the results for this time step
         print(f"Previous Static Pressure Setpoint: {previous_pressure:.2f}” WC")
-        print(f"Current Static Pressure Setpoint: {current_static_pressure:.2f}” WC ({adjustment_type})\n")
+        print(
+            f"Current Static Pressure Setpoint: {current_static_pressure:.2f}” WC ({adjustment_type})\n"
+        )
 
         # Wait for the next time step
         time.sleep(T)

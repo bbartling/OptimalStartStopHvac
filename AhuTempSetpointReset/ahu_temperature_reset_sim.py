@@ -22,6 +22,7 @@ NUM_ZONES = 40  # Fixed number of zones for simulation
 current_SAT = SP0
 device_on = False
 
+
 # Helper Functions
 def calculate_dynamic_SPmax(OAT):
     """
@@ -34,7 +35,10 @@ def calculate_dynamic_SPmax(OAT):
         return high_oat_SPmax
     else:
         # Linear interpolation
-        return SPmax_default - ((SPmax_default - high_oat_SPmax) * ((OAT - OATmin) / (OATmax - OATmin)))
+        return SPmax_default - (
+            (SPmax_default - high_oat_SPmax) * ((OAT - OATmin) / (OATmax - OATmin))
+        )
+
 
 def calculate_requests(zone_temps):
     """
@@ -49,14 +53,19 @@ def calculate_requests(zone_temps):
     num_requests = sum(1 for temp in remaining_temps if temp >= HighZoneTempSpt)
 
     # Print results
-    print(f"Ignored Zone Temperatures: {', '.join(f'{temp:.2f}' for temp in ignored_temps)}")
+    print(
+        f"Ignored Zone Temperatures: {', '.join(f'{temp:.2f}' for temp in ignored_temps)}"
+    )
     if max_remaining_temp is not None:
-        print(f"Max Zone Temperature (After Excluding Top {I}): {max_remaining_temp:.2f}°F")
+        print(
+            f"Max Zone Temperature (After Excluding Top {I}): {max_remaining_temp:.2f}°F"
+        )
     else:
         print(f"No remaining zones to evaluate after excluding the top {I}.")
     print(f"Net Requests (Factoring Ignored Zones): {num_requests}")
-    
+
     return num_requests
+
 
 def adjust_SAT(current_SAT, num_requests, dynamic_SPmax):
     """
@@ -88,6 +97,7 @@ def adjust_SAT(current_SAT, num_requests, dynamic_SPmax):
 
     return current_SAT, total_adjustment, adjustment_type
 
+
 # Simulation
 print("Starting AHU Temperature Reset Simulation...")
 print(f"High Zone Temperature Threshold: {HighZoneTempSpt}°F")
@@ -107,7 +117,9 @@ while device_on:
 
     # Adjust SAT based on cooling requests
     previous_SAT = current_SAT
-    current_SAT, adjustment, adjustment_type = adjust_SAT(current_SAT, num_requests, dynamic_SPmax)
+    current_SAT, adjustment, adjustment_type = adjust_SAT(
+        current_SAT, num_requests, dynamic_SPmax
+    )
 
     # Print the results for this time step
     print(f"Current OAT: {current_OAT:.2f}°F")

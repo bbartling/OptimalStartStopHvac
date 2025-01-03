@@ -31,9 +31,11 @@ current_conditions = {
     "occupied_set_point": 70,  # Occupied temperature setpoint
 }
 
+
 def smooth_parameters(alpha, alpha_new, forgetting_factor):
     """Exponential smoothing for parameter updates."""
     return alpha + forgetting_factor * (alpha_new - alpha)
+
 
 def calculate_optimal_start(current_conditions, alpha_3a, alpha_3b, alpha_3d):
     """Calculate optimal start time based on Model 3."""
@@ -49,6 +51,7 @@ def calculate_optimal_start(current_conditions, alpha_3a, alpha_3b, alpha_3d):
 
     t_opt = max(late_start_limit, min(t_opt, early_start_limit))
     return t_opt
+
 
 def update_parameters(historical_data, forgetting_factor):
     """Update parameters alpha_3a, alpha_3b, and alpha_3d using historical data."""
@@ -76,11 +79,14 @@ def update_parameters(historical_data, forgetting_factor):
 update_parameters(historical_data, forgetting_factor)
 
 # Calculate optimal start time for current conditions
-optimal_start_time = calculate_optimal_start(current_conditions, alpha_3a, alpha_3b, alpha_3d)
+optimal_start_time = calculate_optimal_start(
+    current_conditions, alpha_3a, alpha_3b, alpha_3d
+)
 
 # Log the raw optimal start time in minutes
 print(f"Optimal Start Time in Minutes: {optimal_start_time:.2f}")
 
 # Log the tuned parameters
-print(f"Parameters: alpha_3a={alpha_3a:.2f}, alpha_3b={alpha_3b:.2f}, alpha_3d={alpha_3d:.2f}")
-
+print(
+    f"Parameters: alpha_3a={alpha_3a:.2f}, alpha_3b={alpha_3b:.2f}, alpha_3d={alpha_3d:.2f}"
+)
