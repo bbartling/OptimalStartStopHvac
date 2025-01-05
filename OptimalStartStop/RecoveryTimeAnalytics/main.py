@@ -15,10 +15,10 @@ from plotting_utils import (
 )
 
 # Constants
-EXCLUDE_DAYTYPES = ["Saturday", "Sunday", "Monday"]
+EXCLUDE_DAYTYPES = [] # ["Saturday", "Sunday", "Monday"]
+WARMUP_WINDOWS_HOURS = [4,6,7,8,9,10]
 ZONE_TEMP_PROX_THRES = 0.5  # °F
 STEEP_INCREASE_THRES = 0.6  # °F
-ROLLING_WINDOW_SIZE = 3
 DATASET_MIN_PER_TIME_STEP = 5
 MAX_WARMUP_TIME_MINUTES = 230
 OUTPUT_DIR = "Analysis_Results"
@@ -59,7 +59,7 @@ for label, (start, end) in time_ranges.items():
         daily_setpoints,
         ZONE_TEMP_PROX_THRES,
         STEEP_INCREASE_THRES,
-        ROLLING_WINDOW_SIZE,
+        WARMUP_WINDOWS_HOURS,
     )
 
     print("Step 4: Analyzing warm-up data...")
@@ -70,10 +70,11 @@ for label, (start, end) in time_ranges.items():
         EXCLUDE_DAYTYPES,
         ZONE_TEMP_PROX_THRES,
         STEEP_INCREASE_THRES,
-        ROLLING_WINDOW_SIZE,
         DATASET_MIN_PER_TIME_STEP,
-        MAX_WARMUP_TIME_MINUTES, 
+        MAX_WARMUP_TIME_MINUTES,
+        WARMUP_WINDOWS_HOURS, 
     )
+
 
     # Debug results
     if not results.empty:

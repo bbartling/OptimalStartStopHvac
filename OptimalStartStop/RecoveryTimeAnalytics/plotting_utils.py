@@ -136,18 +136,25 @@ def plot_degrees_per_hour(results, output_dir):
     print(f"Line plot saved to {line_plot_path}")
 
 
-
 def plot_relationship_matrix(results, output_dir):
     """
     Plot a pairplot to show relationships between warm-up duration, temperatures, and day of the week.
     """
     plot_path = os.path.join(output_dir, "Relationship_Matrix.png")
 
-    # Convert Day_of_Week to the full day name for better visualization
-    results["Day_of_Week"] = results.index.day_name()
+    # Filter out rows where Warm_Up_Duration (minutes) is zero
+    results_filtered = results[results["Warm_Up_Duration (minutes)"] > 0].copy()
+
+    # Check if there is any data left to plot
+    if results_filtered.empty:
+        print(f"No data available for plotting after filtering. Skipping plot creation.")
+        return
+
+    # Add Day_of_Week column using assign to avoid SettingWithCopyWarning
+    results_filtered = results_filtered.assign(Day_of_Week=results_filtered.index.day_name())
 
     # Select relevant columns
-    data_to_plot = results[
+    data_to_plot = results_filtered[
         ["Warm_Up_Duration (minutes)", "4AM OaTemp", "4AM HwsTemp", "Day_of_Week"]
     ]
 
@@ -166,4 +173,6 @@ def plot_relationship_matrix(results, output_dir):
     pairplot.savefig(plot_path)
     plt.close()
     print(f"Relationship matrix plot saved to {plot_path}")
+
+
 

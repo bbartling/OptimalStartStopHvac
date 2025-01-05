@@ -32,7 +32,7 @@ def process_data_with_daily_setpoints(
     daily_setpoints,
     zone_temp_prox_thres,
     steep_increase_thres,
-    rolling_window_size,
+    warmup_window_hours,
 ):
     """
     Process the data using daily thresholds for warm-up calculations.
@@ -40,10 +40,13 @@ def process_data_with_daily_setpoints(
     # Ensure the day column is of the same type as the daily_setpoints index
     data["day"] = pd.to_datetime(data.index.date)
 
+    # Filter data to only include rows within the warm-up window hours
+    filtered_data = data[data.index.hour.isin(warmup_window_hours)].copy()
+    filtered_data["Warm_Up_Active"] = 0  # Initialize column
+
     for day, thresholds in daily_setpoints.iterrows():
-        # Convert 'day' to the same type as 'data["day"]'
         day = pd.to_datetime(day)
-        day_data = data[data["day"] == day].copy()  # Explicit copy to avoid warning
+        day_data = filtered_data[filtered_data["day"] == day].copy()
         if day_data.empty:
             print(f"No data for day: {day}. Skipping...")
             continue
@@ -51,31 +54,27 @@ def process_data_with_daily_setpoints(
         occupied_threshold = thresholds["occupied_threshold"]
         unoccupied_threshold = thresholds["unoccupied_threshold"]
 
-        # Explicit use of .loc for assignments
-        day_data.loc[:, "temp_steep_increase"] = (
+        # Identify steep increases and near-occupied thresholds
+        day_data["temp_steep_increase"] = (
             day_data["SpaceTemp"].diff() > steep_increase_thres
         ) & (day_data["SpaceTemp"] >= (unoccupied_threshold + zone_temp_prox_thres))
-        day_data.loc[:, "near_occupied_threshold"] = (
+        day_data["near_occupied_threshold"] = (
             day_data["SpaceTemp"] >= (occupied_threshold - zone_temp_prox_thres)
         ) & (day_data["SpaceTemp"] <= (occupied_threshold + zone_temp_prox_thres))
 
+        # Apply warm-up logic
         warm_up_active = False
         for row in day_data.itertuples():
             if row.temp_steep_increase:
                 warm_up_active = True
             if row.near_occupied_threshold:
                 warm_up_active = False
-            data.loc[row.Index, "Warm_Up_Active"] = int(warm_up_active)
+            day_data.loc[row.Index, "Warm_Up_Active"] = int(warm_up_active)
 
-    data["Warm_Up_Active_Smoothed"] = (
-        data["Warm_Up_Active"].rolling(window=rolling_window_size, center=True).sum()
-    )
-    data["Warm_Up_Active"] = (
-        (data["Warm_Up_Active"] == 1) & (data["Warm_Up_Active_Smoothed"] > 1)
-    ).astype(int)
-    data.drop(columns=["Warm_Up_Active_Smoothed"], inplace=True)
+        # Update the main filtered DataFrame
+        filtered_data.loc[day_data.index, "Warm_Up_Active"] = day_data["Warm_Up_Active"]
 
-    return data
+    return filtered_data
 
 
 def analyze_warm_up(
@@ -85,9 +84,9 @@ def analyze_warm_up(
     exclude_daytypes,
     zone_temp_prox_thres,
     steep_increase_thres,
-    rolling_window_size,
     dataset_min_per_time_step,
     max_warmup_time_minutes,
+    warmup_window_hours,  # Add this parameter
 ):
     print(f"\nAnalyzing warm-up for {start_date} to {end_date}...")
     subset_data = data.loc[start_date:end_date].copy()
@@ -101,22 +100,18 @@ def analyze_warm_up(
         daily_setpoints,
         zone_temp_prox_thres,
         steep_increase_thres,
-        rolling_window_size,
+        warmup_window_hours,  # Pass the warmup window hours here
     )
 
     print("Step 3: Calculating warm-up durations and results...")
     daily_warm_up_duration = subset_data["Warm_Up_Active"].resample("D").sum()
     daily_warm_up_duration_minutes = daily_warm_up_duration * dataset_min_per_time_step
 
-    # Reindex to align with daily_4am_values
-    # Shave off max calculations great than the max_warmup_time_minutes
-    daily_4am_values = subset_data.between_time("04:00", "04:00").resample("D").first()
+    daily_4am_values = subset_data.between_time("04:00", "04:15").resample("D").first()
     daily_warm_up_duration_minutes = daily_warm_up_duration_minutes.reindex(
         daily_4am_values.index
     ).fillna(0).clip(upper=max_warmup_time_minutes)
 
-
-    # Create results DataFrame
     results = pd.DataFrame(
         {
             "Warm_Up_Duration (minutes)": daily_warm_up_duration_minutes,
@@ -127,13 +122,7 @@ def analyze_warm_up(
         }
     ).dropna()
 
-    '''
-    print("daily_warm_up_duration_minutes length:", len(daily_warm_up_duration_minutes))
-    print("daily_4am_values length:", len(daily_4am_values))
-    print("daily_4am_values['SpaceTemp'] length:", len(daily_4am_values["SpaceTemp"]))
-    print("daily_4am_values['OaTemp'] length:", len(daily_4am_values["OaTemp"]))
-    print("daily_4am_values['HwsTemp'] length:", len(daily_4am_values["HwsTemp"]))
-    print("daily_4am_values index length:", len(daily_4am_values.index))
-    '''
     return subset_data, daily_setpoints, results
+
+
 
