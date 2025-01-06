@@ -47,15 +47,22 @@ for label, (start, end) in time_ranges.items():
 
     # Step-by-step troubleshooting: Call functions explicitly
     print(f"Step 1: Filtering data for time range {start} to {end}")
-    subset_data = cold_snap_data.loc[start:end].copy()
+    subset_data = cold_snap_data.loc[start:end].copy()  # Original data retained for plotting
+
+    # Create filtered data for calculations
+    print("Step 1.1: Filtering data for warm-up window hours")
+    filtered_data = subset_data[subset_data.index.hour.isin(WARMUP_WINDOWS_HOURS)].copy()
+    if filtered_data.empty:
+        print(f"[WARNING!] Filtered data is empty for time range {start} to {end}. Skipping analysis.")
+        continue
 
     print("Step 2: Calculating daily setpoints...")
-    daily_setpoints = calculate_daily_setpoints(subset_data, EXCLUDE_DAYTYPES)
+    daily_setpoints = calculate_daily_setpoints(filtered_data, EXCLUDE_DAYTYPES)
     print(daily_setpoints[["occupied_threshold", "unoccupied_threshold"]])
 
     print("Step 3: Processing data with daily setpoints...")
-    subset_data = process_data_with_daily_setpoints(
-        subset_data,
+    filtered_data = process_data_with_daily_setpoints(
+        filtered_data,
         daily_setpoints,
         ZONE_TEMP_PROX_THRES,
         STEEP_INCREASE_THRES,
@@ -63,8 +70,8 @@ for label, (start, end) in time_ranges.items():
     )
 
     print("Step 4: Analyzing warm-up data...")
-    subset_data, daily_setpoints, results = analyze_warm_up(
-        cold_snap_data,
+    _, _, results = analyze_warm_up(
+        filtered_data,  # Use filtered data for calculations
         start,
         end,
         EXCLUDE_DAYTYPES,
@@ -72,9 +79,15 @@ for label, (start, end) in time_ranges.items():
         STEEP_INCREASE_THRES,
         DATASET_MIN_PER_TIME_STEP,
         MAX_WARMUP_TIME_MINUTES,
-        WARMUP_WINDOWS_HOURS, 
+        WARMUP_WINDOWS_HOURS,
     )
 
+    # Merge Warm_Up_Active column back into subset_data for plotting
+    print("Step 5: Merging Warm_Up_Active column back into subset_data for plotting...")
+    subset_data = subset_data.merge(
+        filtered_data[["Warm_Up_Active"]], how="left", left_index=True, right_index=True
+    )
+    subset_data["Warm_Up_Active"].fillna(0, inplace=True)  # Fill missing values with 0
 
     # Debug results
     if not results.empty:
@@ -87,9 +100,10 @@ for label, (start, end) in time_ranges.items():
         # Save the results to the corresponding directory
         save_results_to_csv(results, output_subdir)
 
-        # Generate plots
+        # Generate plots using the full dataset (subset_data)
+        print("Generating plots...")
         plot_line_chart(
-            subset_data,
+            subset_data,  # Full data for plotting, now with Warm_Up_Active column
             daily_setpoints["occupied_threshold"].mean(),
             daily_setpoints["unoccupied_threshold"].mean(),
             output_subdir,

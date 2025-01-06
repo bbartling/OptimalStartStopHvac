@@ -10,6 +10,21 @@ alpha_3a = 10  # Default time to change indoor temp by 1 degree
 alpha_3b = 5  # Time interval for outdoor temp influence
 alpha_3d = 0  # Dynamic adjustment for start time
 
+# Function to calculate the optimal start time
+def calculate_optimal_start_time(current_conditions, alpha_3a, alpha_3b, alpha_3d):
+    T_sp = current_conditions["occupied_set_point"]
+    T_z = current_conditions["zone_temp"]
+    T_o = current_conditions["outdoor_temp"]
+
+    # Optimal start time formula
+    t_opt = (
+        alpha_3a * (T_sp - T_z)
+        + alpha_3b * (T_sp - T_z) * (T_sp - T_o) / alpha_3b
+        + alpha_3d
+    )
+    return t_opt
+
+
 # Historical data with sensor values recorded at 4 AM from writeup
 historical_data = [
     {"zone_temp": 64.79, "outdoor_temp": 41.4, "warmup_time_minutes_history": 230},
@@ -108,19 +123,6 @@ for iteration in range(n_iterations):
 # Output optimized parameters
 print(f"Optimized Parameters: alpha_3a = {alpha_3a:.4f}, alpha_3b = {alpha_3b:.4f}, alpha_3d = {alpha_3d:.4f}")
 
-# Function to calculate the optimal start time
-def calculate_optimal_start_time(current_conditions, alpha_3a, alpha_3b, alpha_3d):
-    T_sp = current_conditions["occupied_set_point"]
-    T_z = current_conditions["zone_temp"]
-    T_o = current_conditions["outdoor_temp"]
-
-    # Optimal start time formula
-    t_opt = (
-        alpha_3a * (T_sp - T_z)
-        + alpha_3b * (T_sp - T_z) * (T_sp - T_o) / alpha_3b
-        + alpha_3d
-    )
-    return t_opt
 
 # Calculate optimal start time using the optimized parameters
 optimal_start_time = calculate_optimal_start_time(current_conditions, alpha_3a, alpha_3b, alpha_3d)
