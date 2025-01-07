@@ -1,29 +1,47 @@
-import numpy as np
 
-# Configuration Parameters
-learning_rate = 0.01  # Learning rate for gradient descent
-n_iterations = 1000  # Number of iterations for optimization
-tolerance = 1e-6  # Convergence tolerance
 
-# Initialize Parameters
-alpha_3a = 10  # Default time to change indoor temp by 1 degree
-alpha_3b = 5  # Time interval for outdoor temp influence
-alpha_3d = 0  # Dynamic adjustment for start time
+# Import required libraries
+import datetime as dt
+import matplotlib.pyplot as plt
 
-# Function to calculate the optimal start time
-def calculate_optimal_start_time(current_conditions, alpha_3a, alpha_3b, alpha_3d):
+# VOLTTRON-style EMA function
+def ema(lst):
+    smoothing_constant = 2.0 / (len(lst) + 1.0) * 2.0 if lst else 1.0
+    smoothing_constant = smoothing_constant if smoothing_constant <= 1.0 else 1.0
+    _sort = lst[::-1]
+    ema_value = 0
+    _sort = [item[1] if isinstance(item, list) else item for item in _sort]
+    for n in range(len(lst)):
+        ema_value += _sort[n] * smoothing_constant * (1.0 - smoothing_constant) ** n
+    if _sort:
+        ema_value += _sort[-1] * (1.0 - smoothing_constant) ** len(lst)
+    return ema_value
+
+# Calculate optimal start time
+def calculate_optimal_start(current_conditions, alpha_3a, alpha_3b, alpha_3d):
     T_sp = current_conditions["occupied_set_point"]
     T_z = current_conditions["zone_temp"]
     T_o = current_conditions["outdoor_temp"]
 
-    # Optimal start time formula
     t_opt = (
         alpha_3a * (T_sp - T_z)
         + alpha_3b * (T_sp - T_z) * (T_sp - T_o) / alpha_3b
         + alpha_3d
     )
+
+    t_opt = max(late_start_limit, min(t_opt, early_start_limit))
     return t_opt
 
+# Configuration Parameters
+early_start_limit = 180  # Maximum early start time in minutes
+late_start_limit = 10  # Minimum pre-start time in minutes
+
+monday_morning_extra_time = 30
+
+# Initialize Parameters
+alpha_3a = 10  # Default time to change indoor temp by 1 degree
+alpha_3b = 5  # Time interval for outdoor temp influence
+alpha_3d = 0  # Dynamic adjustment for start time
 
 # Historical data with sensor values recorded at 4 AM from writeup
 historical_data = [
@@ -76,56 +94,51 @@ historical_data = [
     {"zone_temp": 65.11, "outdoor_temp": 35.16, "warmup_time_minutes_history": 55},
 ]
 
-# 4AM Conditions Check
+
+# Current Conditions
 current_conditions = {
-    "zone_temp": 61.,  # Current indoor temperature
-    "outdoor_temp": 1.,  # Current outdoor temperature
-    "occupied_set_point": 70.,  # Occupied temperature setpoint
+    "zone_temp": 48,  # Current indoor temperature
+    "outdoor_temp": 12,  # Current outdoor temperature
+    "occupied_set_point": 70,  # Occupied temperature setpoint
 }
 
-# Convert historical data to numpy arrays
-T_sp = current_conditions["occupied_set_point"]
-T_z = np.array([data["zone_temp"] for data in historical_data])
-T_o = np.array([data["outdoor_temp"] for data in historical_data])
-t_actual = np.array([data["warmup_time_minutes_history"] for data in historical_data])
+# Update parameters with EMA
+def update_parameters(historical_data):
+    global alpha_3a, alpha_3b, alpha_3d
 
-# Gradient Descent for Parameter Updates
-for iteration in range(n_iterations):
-    # Predicted warmup time
-    t_pred = (
-        alpha_3a * (T_sp - T_z)
-        + alpha_3b * (T_sp - T_z) * (T_sp - T_o) / alpha_3b
-        + alpha_3d
-    )
+    alpha_3a_list = []
+    alpha_3b_list = []
+    alpha_3d_list = []
 
-    # Compute the loss (Mean Squared Error)
-    loss = np.mean((t_actual - t_pred) ** 2)
+    for data in historical_data:
+        T_sp = current_conditions["occupied_set_point"]
+        T_z = data["zone_temp"]
+        T_o = data["outdoor_temp"]
+        t_actual = data["warmup_time_minutes_history"]
 
-    # Compute gradients
-    grad_alpha_3a = -2 * np.mean((t_actual - t_pred) * (T_sp - T_z))
-    grad_alpha_3b = -2 * np.mean((t_actual - t_pred) * (T_sp - T_z) * (T_sp - T_o))
-    grad_alpha_3d = -2 * np.mean(t_actual - t_pred)
+        alpha_3a_new = abs(t_actual / (T_sp - T_z))
+        alpha_3b_new = abs(t_actual / ((T_sp - T_z) * (T_sp - T_o)))
+        alpha_3d_new = t_actual - (
+            alpha_3a_new * (T_sp - T_z)
+            + alpha_3b_new * (T_sp - T_z) * (T_sp - T_o) / alpha_3b_new
+        )
 
-    # Update parameters
-    alpha_3a -= learning_rate * grad_alpha_3a
-    alpha_3b -= learning_rate * grad_alpha_3b
-    alpha_3d -= learning_rate * grad_alpha_3d
+        # Append new values to lists
+        alpha_3a_list.append(alpha_3a_new)
+        alpha_3b_list.append(alpha_3b_new)
+        alpha_3d_list.append(alpha_3d_new)
 
-    # Monitor progress
-    if iteration % 100 == 0 or iteration < 10:
-        print(f"Iteration {iteration}: Loss = {loss:.6f}, alpha_3a = {alpha_3a:.4f}, alpha_3b = {alpha_3b:.4f}, alpha_3d = {alpha_3d:.4f}")
+    # Use EMA to update parameters
+    alpha_3a = ema(alpha_3a_list)
+    alpha_3b = ema(alpha_3b_list)
+    alpha_3d = ema(alpha_3d_list)
 
-    # Check for convergence
-    if loss < tolerance:
-        print(f"Converged at iteration {iteration}: Loss = {loss:.6f}")
-        break
+# Update parameters using historical data
+update_parameters(historical_data)
 
-# Output optimized parameters
-print(f"Optimized Parameters: alpha_3a = {alpha_3a:.4f}, alpha_3b = {alpha_3b:.4f}, alpha_3d = {alpha_3d:.4f}")
+# Calculate optimal start time
+optimal_start_time = calculate_optimal_start(current_conditions, alpha_3a, alpha_3b, alpha_3d)
 
-
-# Calculate optimal start time using the optimized parameters
-optimal_start_time = calculate_optimal_start_time(current_conditions, alpha_3a, alpha_3b, alpha_3d)
-
-# Output the calculated optimal start time
-print(f"Optimal Start Time for Current Conditions: {optimal_start_time:.2f} minutes")
+# Log the results
+print(f"Optimal Start Time in Minutes: {optimal_start_time:.2f}")
+print(f"Parameters: alpha_3a={alpha_3a:.2f}, alpha_3b={alpha_3b:.2f}, alpha_3d={alpha_3d:.2f}")

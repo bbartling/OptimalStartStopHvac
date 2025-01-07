@@ -234,7 +234,7 @@ $ python pnnl_model3_method.py
 ### Example Py Output
 ```
 Optimal Start Time in Minutes: 180.00
-Parameters: alpha_3a=7.76, alpha_3b=2.44, alpha_3d=-628.77
+Parameters: alpha_3a=16.09, alpha_3b=0.43, alpha_3d=-222.39
 ```
 
 </details>
@@ -247,8 +247,8 @@ $ node pnnlModel3.js
 
 ### Example Js Output
 ```
-Optimal Start Time in Minutes: 180
-Parameters: alpha3a=7.76, alpha3b=2.44, alpha3d=-628.77
+Optimal Start Time in Minutes: 180.00
+Parameters: alpha_3a=16.09, alpha_3b=0.43, alpha_3d=-222.39
 ```
 
 </details>
@@ -279,3 +279,24 @@ Parameters: alpha3a=7.76, alpha3b=2.44, alpha3d=-628.77
 * This algorithm should work for both heat pump zones and AHU systems. Best practices should be applied regarding the zone temperature input to the algorithm, whether it uses an average of all zone air temperatures or the worst-case scenario from a VAV box in the system (e.g., zones with two exterior walls, etc.).
 
 * In the initial start state of the algorithm, occupancy should NOT be derived directly from a BAS schedule. Instead, use an IoT calendar widget or hard-coded actual building occupancy hours. The BAS schedule should only be referenced when releasing overrides back to the BAS in an assumed occupied state, as this is the only point where verifying the BAS schedule is necessary. This is because BAS schedules can be misconfigured or include unnecessary equipment runtime scheduling.
+
+* The **Optimal Start Algorithm** leverages a **VOLTTRON-style Exponential Moving Average (EMA)** to dynamically update its parameters for precise and adaptive control. The EMA function is copied from the PNNL VOLTTRON Applications reposity for the [Optimal Start VOLTTRON agent](https://github.com/VOLTTRON/volttron-pnnl-applications/tree/main/EnergyEfficiency/OptimalStart). This EMA method ensures that the most recent data is given higher weight, while still accounting for historical trends. Here's how it works:
+
+1. **Dynamic Smoothing**:
+   - The smoothing factor (\( \alpha \)) is calculated based on the amount of historical data:
+     \[
+     \alpha = \frac{2}{\text{Length of Data} + 1}
+     \]
+   - This allows the algorithm to adapt automatically to varying data sizes.
+
+2. **Exponentially Weighted Updates**:
+   - Recent data points have a greater influence on the updated parameters.
+   - Older data contributes less over time, ensuring the algorithm remains responsive to current trends.
+
+3. **Historical Data Integration**:
+   - The EMA processes all historical records, ensuring that long-term trends are considered while prioritizing recent changes.
+
+4. **Real-Time Adaptation**:
+   - Each time new data is added, the EMA recalculates parameters (e.g., warmup time coefficients), ensuring the algorithm remains optimal for real-time applications.
+
+By using the VOLTTRON EMA, the **Optimal Start Algorithm** achieves a balance between historical accuracy and real-time responsiveness, making it ideal for HVAC systems that require dynamic, data-driven control. This method mirrors VOLTTRON's proven approach, ensuring reliable performance in practical applications.
