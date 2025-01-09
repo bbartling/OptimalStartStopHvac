@@ -1,6 +1,7 @@
 // Configuration Parameters
 const earlyStartLimit = 180; // Maximum early start time in minutes
 const lateStartLimit = 10; // Minimum pre-start time in minutes
+const maxDaysData = 10;
 
 // Initialize Parameters
 let alpha3a = 10; // Default time to change indoor temp by 1 degree
@@ -58,6 +59,8 @@ const historicalData = [
   { zoneTemp: 65.11, outdoorTemp: 35.16, warmupTimeMinutesHistory: 55 },
 ];
 
+// Limit historical data to the last `maxDaysData` entries
+const limitedHistoricalData = historicalData.slice(-maxDaysData);
 
 // Current Conditions
 const currentConditions = {
@@ -134,7 +137,7 @@ function updateParameters(historicalData) {
 }
 
 // Update parameters based on historical data
-updateParameters(historicalData);
+updateParameters(limitedHistoricalData);
 
 // Calculate optimal start time for current conditions
 const optimalStartTime = calculateOptimalStart(

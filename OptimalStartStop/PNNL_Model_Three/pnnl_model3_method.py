@@ -35,7 +35,7 @@ def calculate_optimal_start(current_conditions, alpha_3a, alpha_3b, alpha_3d):
 # Configuration Parameters
 early_start_limit = 180  # Maximum early start time in minutes
 late_start_limit = 10  # Minimum pre-start time in minutes
-
+max_days_of_data = 10
 monday_morning_extra_time = 30
 
 # Initialize Parameters
@@ -93,6 +93,9 @@ historical_data = [
     {"zone_temp": 64.12, "outdoor_temp": 7.42, "warmup_time_minutes_history": 45},
     {"zone_temp": 65.11, "outdoor_temp": 35.16, "warmup_time_minutes_history": 55},
 ]
+
+# Limit historical data to the last 10 entries
+historical_data = historical_data[-max_days_of_data:]
 
 
 # Current Conditions
