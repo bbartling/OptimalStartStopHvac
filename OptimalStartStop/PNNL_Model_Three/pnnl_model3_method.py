@@ -99,9 +99,14 @@ historical_data = historical_data[-max_days_of_data:]
 
 
 # Current Conditions
-current_conditions = {
-    "zone_temp": 48,  # Current indoor temperature
-    "outdoor_temp": 12,  # Current outdoor temperature
+"""
+{ zoneTemp: 48, outdoorTemp: 12, occupiedSetPoint: 70 },
+{ zoneTemp: 66, outdoorTemp: 20, occupiedSetPoint: 70 },
+{ zoneTemp: 76, outdoorTemp: 40, occupiedSetPoint: 70 },
+"""
+current_conditions = { 
+    "zone_temp": 76,  # Current indoor temperature
+    "outdoor_temp": 40,  # Current outdoor temperature
     "occupied_set_point": 70,  # Occupied temperature setpoint
 }
 

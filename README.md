@@ -1,11 +1,25 @@
 ## aso-pseudo-code
-This repository explores versatile algorithms for Automated Supervisory Optimization (ASO), designed for implementation through IoT to enhance HVAC system performance in smart building environments. Each pseudo code folder has simulation to run in Python, JavaScript, and Java versions of the algorithm.
+This repository explores versatile algorithms for Automated Supervisory Optimization (ASO), designed for implementation through IoT to enhance HVAC system performance in smart building environments. Each pseudo code folder has simulation to run in Python and JavaScript versions of the algorithm.
+
+## Implement on the BAS
+- Reduce equipment runtime via BAS schedules
+- PID tuning or hunting issues found in controls
+
+
+## ASO
 
 - [ ] **[Optimal Start/Stop](https://github.com/bbartling/aso-pseudo-code/tree/develop/OptimalStartStop)**
-   [ ] Based on PNNL research Model 3 from paper.
+   [x] Based on PNNL research Model 3 from paper.
       - Work in progress.
-      - Adaptive `learning-algorithm` that tunes itself.
-   [ ] Recovery Time Per Degree.
+      - Adaptive `learning-algorithm` that tunes itself. 
+   - Recovery Time Analytics:
+      - A script designed to calculate the time (in minutes) required for a temperature sensor to reach the zone temperature setpoint. This metric is integral to Optimal Start calculations.
+      - Status:
+         - [x] Winter time morning warm up in Python version completed.
+         - [ ] Winter time morning warm up in SQL version for Grafana pending.
+         - [x] Summertime time morning cooldown in Python version completed.
+         - [ ] Summertime time morning cooldown in SQL version for Grafana pending.
+   [x] Recovery Time Per Degree.
       - Traditional Non-Adaptive Optimal Start or Stop.
       - Requires manual set of degree per hour of temperature recovery rates.
 
