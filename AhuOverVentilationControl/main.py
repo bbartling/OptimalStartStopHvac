@@ -1,7 +1,6 @@
 # Define constants
-MIN_TEMP_DELTA = 10  # Temperature delta threshold (in °F) for mild economizer operation
-DESIGN_OUTDOOR_AIR_CFM = 2000  # Design outdoor air CFM for the AHU
-SUPPLY_AIR_DESIGN_CFM = 10000  # Total supply air design CFM
+PERCENT_OA = 0.2  # Design outside air percentage (20%)
+MIN_RETURN_OA_DELTA = 10  # Minimum temperature difference between return and outside air to calculate OA fraction
 
 # Define data structures to simulate telemetry data
 fault_data = {
@@ -13,12 +12,14 @@ fault_data = {
     "economizer_sig_col": [0.2] * 6,
 }
 
+
 # Define the function to calculate the outside air fraction
 def calculate_oa_fraction(mix_air_temp, out_air_temp, return_air_temp):
-    if abs(out_air_temp - return_air_temp) >= MIN_TEMP_DELTA:
+    if abs(out_air_temp - return_air_temp) >= MIN_RETURN_OA_DELTA:
         return (return_air_temp - mix_air_temp) / (return_air_temp - out_air_temp)
     else:
         return None  # Condition false equivalent in Python
+
 
 # Function to calculate and print outside air fraction and CFM
 def calculate_ventilation(fault_data):
@@ -28,15 +29,26 @@ def calculate_ventilation(fault_data):
         out_air_temp = fault_data["out_air_temp"][minute]
         return_air_temp = fault_data["return_air_temp"][minute]
         fan_vfd_speed = fault_data["fan_vfd_speed_col"][minute]
-        
-        if fan_vfd_speed == 0.0:
+
+        if (
+            fan_vfd_speed == 0.0
+            or abs(out_air_temp - return_air_temp) < MIN_RETURN_OA_DELTA
+        ):
             oa_fraction = None
             calculated_oa_cfm = None
         else:
-            oa_fraction = calculate_oa_fraction(mix_air_temp, out_air_temp, return_air_temp)
-            calculated_oa_cfm = oa_fraction * vav_total_air_flow if oa_fraction is not None else None
+            oa_fraction = calculate_oa_fraction(
+                mix_air_temp, out_air_temp, return_air_temp
+            )
+            calculated_oa_cfm = (
+                oa_fraction * vav_total_air_flow if oa_fraction is not None else None
+            )
+            design_oa_cfm = PERCENT_OA * vav_total_air_flow
 
-        print(f"Minute {minute}: OA Fraction = {oa_fraction}, Calculated OA CFM = {calculated_oa_cfm}")
+        print(
+            f"Minute {minute}: OA Fraction = {oa_fraction}, Calculated OA CFM = {calculated_oa_cfm}, Design OA CFM = {design_oa_cfm}"
+        )
+
 
 # Run the calculation
 calculate_ventilation(fault_data)
